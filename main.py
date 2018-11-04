@@ -29,16 +29,21 @@ def readFile():
                     inputFile.append(line)
     return inputFile
 
+def descritize(r):
+    print(r)
+
 def scanFile(inputFile):
     # Select rows and columns
     r = pd.DataFrame(inputFile[1:], columns=inputFile[0])
-    # Convert the table into a numeric object if possible
-    r = pd.to_numeric(r, errors="ignore")
     # Convert Each column into a numeric object if possible
+    numeric = False
     for column in r:
         r[column] = pd.to_numeric(r[column], errors="ignore")
-    print(r)
-    print(r.dtypes)
+        # Check if the attribute is Numerical
+        if r[column].dtype.kind in 'bifc':
+            numeric = True
+    if (numeric):
+        descritize(r)
 
 def main():
     inputFile = readFile()
