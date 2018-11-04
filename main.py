@@ -30,9 +30,15 @@ def readFile():
     return inputFile
 
 def scanFile(inputFile):
+    # Select rows and columns
     r = pd.DataFrame(inputFile[1:], columns=inputFile[0])
+    # Convert the table into a numeric object if possible
+    r = pd.to_numeric(r, errors="ignore")
+    # Convert Each column into a numeric object if possible
+    for column in r:
+        r[column] = pd.to_numeric(r[column], errors="ignore")
     print(r)
-    print(r["GLS100"])
+    print(r.dtypes)
 
 def main():
     inputFile = readFile()
