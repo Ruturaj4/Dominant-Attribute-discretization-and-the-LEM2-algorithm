@@ -2,7 +2,7 @@
 # This is the main file
 
 import re
-import csv
+import pandas as pd
 
 # For tab completion
 import readline
@@ -20,14 +20,23 @@ def readFile():
             line = re.sub(re.compile("<[^>]+>"), "", line)
             line = line.split()
             if line != []:
-                inputFile.append(line)
+                # Removing "[" and "]" from the first line
+                if line[0] == "[" or line[-1] == "]":
+                    #line = list(map(int, line))
+                    inputFile.append(line[1:-1])
+                else:
+                    #line = list(map(int, line))
+                    inputFile.append(line)
     return inputFile
 
-#def scanFile(inputFile): 
+def scanFile(inputFile):
+    r = pd.DataFrame(inputFile[1:], columns=inputFile[0])
+    print(r)
+    print(r["GLS100"])
 
 def main():
     inputFile = readFile()
-    print(inputFile)
+    scanFile(inputFile)
 
 if __name__=="__main__":
     main()
