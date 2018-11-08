@@ -29,15 +29,23 @@ def readFile():
                     inputFile.append(line)
     return inputFile
 
+def consistency(r):
+    # Let's compute a* and d*
+    a = r.iloc[:, :-1]
+    print(a)
+    d = r.iloc[:, -1]
+    print(d)
+
 def descritize(r):
     print(r)
+    consistency(r)
 
 def scanFile(inputFile):
     # Select rows and columns
     r = pd.DataFrame(inputFile[1:], columns=inputFile[0])
     # Convert Each column into a numeric object if possible
     numeric = False
-    for column in r:
+    for column in r.iloc[:, :-1]:
         r[column] = pd.to_numeric(r[column], errors="ignore")
         # Check if the attribute is Numerical
         if r[column].dtype.kind in 'bifc':
