@@ -33,8 +33,17 @@ def consistency(r):
     # Let's compute a* and d*
     a = r.iloc[:, :-1]
     print(a)
-    d = r.iloc[:, -1]
+    d = r.iloc[:, -1:]
     print(d)
+    # temp maintains decision
+    decision = []
+    unique = (d[list(d)[0]].unique())
+    for value in unique:
+        decision.append(d.index[d[list(d)[0]] == value].tolist())
+    print(decision)
+    # atributes maintain decision
+    atribute = []
+    print(a[list(a)[1]].unique())
 
 def descritize(r):
     print(r)
