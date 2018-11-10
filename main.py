@@ -29,22 +29,51 @@ def readFile():
                     inputFile.append(line)
     return inputFile
 
-def consistency(r):
-    # Let's compute a* and d*
-    a = r.iloc[:, :-1]
-    print(a)
-    d = r.iloc[:, -1:]
-    print(d)
+def each_attribute():
+    attribute = []
+    for i in range(len(list(a))):
+        for value in a[list(a)[i]].unique():
+            attribute.append(a.index[a[list(a)[i]] == value].tolist())
+    # Returns something like - [[0, 1, 2], [3, 4], [5], [0, 1, 3, 4], [2, 5]]
+    return attribute
+
+def all_decisions(d):
     # temp maintains decision
     decision = []
     unique = (d[list(d)[0]].unique())
     for value in unique:
         decision.append(d.index[d[list(d)[0]] == value].tolist())
-    print(decision)
-    # atributes maintain decision
-    atribute = []
-    print(a[list(a)[1]].unique())
+    return decision
 
+def all_attributes(a):
+    #print(list(a.index.values)) #Print indexes
+    # atribute maintains decision
+    attribute = []
+    columns = list(a.index.values)
+    # A used list for used attributes
+    used = []
+    for i in range(len(columns)):
+        temp = [i]
+        if i in used:
+            continue
+        used.append(i)
+        for j in range(i+1 , len(columns)):
+            if(a.values[i].tolist() == a.values[j].tolist()):
+                temp.append(j)
+                used.append(j)
+                print(a.values[j])
+        attribute.append(temp)
+    return attribute
+
+def consistency(r):
+    # Let's compute a* and d*
+    a = r.iloc[:, :-1].astype(object)
+    attribute = all_attributes(a)
+    d = r.iloc[:, -1:].astype(object)
+    decision = all_decisions(d)
+    print(attribute)
+    print(decision)
+    
 def descritize(r):
     print(r)
     consistency(r)
