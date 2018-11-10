@@ -42,7 +42,7 @@ def all_decisions(d):
     decision = []
     unique = (d[list(d)[0]].unique())
     for value in unique:
-        decision.append(d.index[d[list(d)[0]] == value].tolist())
+        decision.append(set(d.index[d[list(d)[0]] == value].tolist()))
     return decision
 
 def all_attributes(a):
@@ -62,8 +62,19 @@ def all_attributes(a):
                 temp.append(j)
                 used.append(j)
                 print(a.values[j])
-        attribute.append(temp)
+        attribute.append(set(temp))
     return attribute
+
+def subset(attribute, decision):
+    check = []
+    for i in attribute:
+        for j in decision:
+            if i.issubset(j):
+                check.append(i)
+    if (check == attribute):
+        return True
+    else:
+        return False
 
 def consistency(r):
     # Let's compute a* and d*
@@ -73,10 +84,17 @@ def consistency(r):
     decision = all_decisions(d)
     print(attribute)
     print(decision)
+    if subset(attribute, decision):
+        print("It is consistent")
+        return True
+    else:
+        print("It is not consistent")
+        return False
     
 def descritize(r):
     print(r)
     consistency(r)
+    print(r)
 
 def scanFile(inputFile):
     # Select rows and columns
