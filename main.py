@@ -29,7 +29,7 @@ def readFile():
                     inputFile.append(line)
     return inputFile
 
-def each_attribute():
+def each_attribute(a):
     attribute = []
     for i in range(len(list(a))):
         for value in a[list(a)[i]].unique():
@@ -37,10 +37,14 @@ def each_attribute():
     # Returns something like - [[0, 1, 2], [3, 4], [5], [0, 1, 3, 4], [2, 5]]
     return attribute
 
+def unique_values(d):
+    return (d[list(d)[0]].unique())
+
 def all_decisions(d):
     # temp maintains decision
     decision = []
-    unique = (d[list(d)[0]].unique())
+    unique = unique_values(d)
+    print(unique)
     for value in unique:
         decision.append(set(d.index[d[list(d)[0]] == value].tolist()))
     return decision
@@ -95,6 +99,17 @@ def descritize(r):
     print(r)
     consistency(r)
     print(r)
+    # Descritize using dominant attribute approach
+    num_columns = []
+    # Considering only numeric columns
+    for column in r.iloc[:, :-1]:
+        if r[column].dtype.kind in "bifc":
+            num_columns.append(column)
+    print(num_columns)
+    for column in num_columns:
+        print("Trying: " + column)
+        print(r.loc[:,[column]])
+        print(all_decisions(r.loc[:,[column]]))
 
 def scanFile(inputFile):
     # Select rows and columns
