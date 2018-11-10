@@ -8,6 +8,15 @@ import pandas as pd
 import readline
 readline.parse_and_bind("tab: complete")
 
+class Node:
+    def __init__(self, dataval = None):
+        self.dataval = dataval
+        self.nextval = None
+
+class Linked_list:
+    def __init__(self):
+        self.headval = None
+
 def readFile():
     f = input("Please enter the name of the input file: ")
     print("You entered: " + f)
@@ -44,7 +53,7 @@ def all_decisions(d):
     # temp maintains decision
     decision = []
     unique = unique_values(d)
-    print(unique)
+    #print(unique)
     for value in unique:
         decision.append(set(d.index[d[list(d)[0]] == value].tolist()))
     return decision
@@ -80,12 +89,7 @@ def subset(attribute, decision):
     else:
         return False
 
-def consistency(r):
-    # Let's compute a* and d*
-    a = r.iloc[:, :-1].astype(object)
-    attribute = all_attributes(a)
-    d = r.iloc[:, -1:].astype(object)
-    decision = all_decisions(d)
+def consistency(attribute, decision):
     print(attribute)
     print(decision)
     if subset(attribute, decision):
@@ -96,8 +100,13 @@ def consistency(r):
         return False
     
 def descritize(r):
+    # Let's compute a* and d*
+    a = r.iloc[:, :-1].astype(object)
+    attribute = all_attributes(a)
+    d = r.iloc[:, -1:].astype(object)
+    decision = all_decisions(d)
     print(r)
-    consistency(r)
+    consistency(attribute, decision)
     print(r)
     # Descritize using dominant attribute approach
     num_columns = []
@@ -108,9 +117,15 @@ def descritize(r):
     print(num_columns)
     for column in num_columns:
         print("Trying: " + column)
-        print(r.loc[:,[column]])
-        print(all_decisions(r.loc[:,[column]]))
+        val_decisions = all_decisions(r.loc[:,[column]])
+        print(val_decisions)
+        val_unique = unique_values(r.loc[:,[column]]).tolist()
+        print(val_unique)
+        for d in range(len(val_unique)):
+            print({val_unique[d]:val_decisions[d]})
+        break
 
+ 
 def scanFile(inputFile):
     # Select rows and columns
     r = pd.DataFrame(inputFile[1:], columns=inputFile[0])
