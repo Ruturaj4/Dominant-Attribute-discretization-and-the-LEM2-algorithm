@@ -4,6 +4,7 @@
 import re
 import pandas as pd
 from math import log
+from collections import Counter
 
 # For tab completion
 import readline
@@ -102,14 +103,16 @@ def consistency(attribute, decision):
 
 def entropy(num_rows, val_decisions):
     print("Calculating entropy\n")
-    print("Num rows: "+str(num_rows))
-    print(val_decisions)
-    sizes = [len(x) for x in val_decisions]
+    # List of unique keys
+    #print(list(Counter(val_decisions).keys()))
+    # Number of unique values
+    sizes = list(Counter(val_decisions).values())
     ent = 0.0
     for x in sizes:
-        ent += -(x/num_rows)*log((x/num_rows),2)
+        ent += -(x/num_rows)*log((x/len(val_decisions)),2)
+    print("Entropy calculated:")
     print(ent)
-    print("Entropy calculated")
+    return ent
 
 def value_pass(r, a, d, attribute, decision):
     # Descritize using dominant attribute approach
@@ -120,6 +123,7 @@ def value_pass(r, a, d, attribute, decision):
             num_columns.append(column)
     print(num_columns)
     for column in num_columns:
+        ent = 0.0
         print("Trying: " + column)
         val_decisions = all_decisions(r.loc[:,[column]])
         print(val_decisions)
@@ -133,8 +137,10 @@ def value_pass(r, a, d, attribute, decision):
             for j in val_decisions[i]:
                 temp_decision.append(all_decision[j])
             # Calculating H(D|A) value i.e. entropy value
-            entropy(len(r.index), temp_decision)
+            ent += entropy(len(r.index), temp_decision)
             temp.update({val_unique[i]:temp_decision})
+        print("Final Entropy:")
+        print(ent)
         print(temp)
 
 def descritize(r):
