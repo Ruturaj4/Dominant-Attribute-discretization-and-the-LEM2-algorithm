@@ -121,8 +121,15 @@ def descritize(r):
         print(val_decisions)
         val_unique = unique_values(r.loc[:,[column]]).tolist()
         print(val_unique)
-        for d in range(len(val_unique)):
-            print({val_unique[d]:val_decisions[d]})
+        temp = {}
+        #caluculating the list of all decisions
+        all_decision = d.iloc[:,0].tolist()
+        for i in range(len(val_unique)):
+            temp_decision = []
+            for j in val_decisions[i]:
+                temp_decision.append(all_decision[j])
+            temp.update({val_unique[i]:temp_decision})
+        print(temp)
         break
 
  
