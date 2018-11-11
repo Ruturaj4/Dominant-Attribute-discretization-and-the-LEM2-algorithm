@@ -3,6 +3,7 @@
 
 import re
 import pandas as pd
+from math import log
 
 # For tab completion
 import readline
@@ -98,16 +99,19 @@ def consistency(attribute, decision):
     else:
         print("It is not consistent")
         return False
-    
-def descritize(r):
-    # Let's compute a* and d*
-    a = r.iloc[:, :-1].astype(object)
-    attribute = all_attributes(a)
-    d = r.iloc[:, -1:].astype(object)
-    decision = all_decisions(d)
-    print(r)
-    consistency(attribute, decision)
-    print(r)
+
+def entropy(num_rows, val_decisions):
+    print("Calculating entropy\n")
+    print("Num rows: "+str(num_rows))
+    print(val_decisions)
+    sizes = [len(x) for x in val_decisions]
+    ent = 0.0
+    for x in sizes:
+        ent += -(x/num_rows)*log((x/num_rows),2)
+    print(ent)
+    print("Entropy calculated")
+
+def value_pass(r, a, d, attribute, decision):
     # Descritize using dominant attribute approach
     num_columns = []
     # Considering only numeric columns
@@ -119,8 +123,8 @@ def descritize(r):
         print("Trying: " + column)
         val_decisions = all_decisions(r.loc[:,[column]])
         print(val_decisions)
+        # List of Unique values in the column
         val_unique = unique_values(r.loc[:,[column]]).tolist()
-        print(val_unique)
         temp = {}
         #caluculating the list of all decisions
         all_decision = d.iloc[:,0].tolist()
@@ -128,10 +132,21 @@ def descritize(r):
             temp_decision = []
             for j in val_decisions[i]:
                 temp_decision.append(all_decision[j])
+            # Calculating H(D|A) value i.e. entropy value
+            entropy(len(r.index), temp_decision)
             temp.update({val_unique[i]:temp_decision})
         print(temp)
-        break
 
+def descritize(r):
+    # Let's compute a* and d*
+    a = r.iloc[:, :-1].astype(object)
+    attribute = all_attributes(a)
+    d = r.iloc[:, -1:].astype(object)
+    decision = all_decisions(d)
+    print(r)
+    consistency(attribute, decision)
+    value_pass(r, a, d, attribute, decision)
+    
  
 def scanFile(inputFile):
     # Select rows and columns
