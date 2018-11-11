@@ -5,19 +5,16 @@ import re
 import pandas as pd
 from math import log
 from collections import Counter
+import numpy as np
 
 # For tab completion
 import readline
 readline.parse_and_bind("tab: complete")
 
-class Node:
-    def __init__(self, dataval = None):
-        self.dataval = dataval
-        self.nextval = None
-
-class Linked_list:
-    def __init__(self):
-        self.headval = None
+class attr:
+    def __init__(self, dominant_attribute = None, cutpoints = []):
+        self.dominant_attribute = dominant_attribute
+        self.cutpoints = cutpoints
 
 def readFile():
     f = input("Please enter the name of the input file: ")
@@ -102,7 +99,6 @@ def consistency(attribute, decision):
         return False
 
 def entropy(num_rows, val_decisions):
-    print("Calculating entropy\n")
     # List of unique keys
     #print(list(Counter(val_decisions).keys()))
     # Number of unique values
@@ -110,8 +106,8 @@ def entropy(num_rows, val_decisions):
     ent = 0.0
     for x in sizes:
         ent += -(x/num_rows)*log((x/len(val_decisions)),2)
-    print("Entropy calculated:")
-    print(ent)
+    #print("Entropy calculated:")
+    #print(ent)
     return ent
 
 def value_pass(r, a, d, attribute, decision):
@@ -122,6 +118,8 @@ def value_pass(r, a, d, attribute, decision):
         if r[column].dtype.kind in "bifc":
             num_columns.append(column)
     print(num_columns)
+    #Setting smallest entropy value infinit
+    smallest_entropy = float("inf")
     for column in num_columns:
         ent = 0.0
         print("Trying: " + column)
@@ -141,7 +139,20 @@ def value_pass(r, a, d, attribute, decision):
             temp.update({val_unique[i]:temp_decision})
         print("Final Entropy:")
         print(ent)
-        print(temp)
+        #print(val_unique)
+        if (ent < smallest_entropy):
+            smallest_entropy = ent
+            # Dominant attribute
+            dominant_attr = column
+            # Unique value list
+            dom_val_unique = val_unique
+    print(smallest_entropy)
+    print(dominant_attr)
+    print(dom_val_unique)
+    # Calculating cutpoints
+    x = np.array(sorted(dom_val_unique))
+    cutpoints = ((x[1:] + x[:-1]) / 2).tolist()
+     
 
 def descritize(r):
     # Let's compute a* and d*
@@ -152,7 +163,6 @@ def descritize(r):
     print(r)
     consistency(attribute, decision)
     value_pass(r, a, d, attribute, decision)
-    
  
 def scanFile(inputFile):
     # Select rows and columns
