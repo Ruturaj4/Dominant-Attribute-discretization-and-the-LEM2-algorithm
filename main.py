@@ -12,9 +12,9 @@ import readline
 readline.parse_and_bind("tab: complete")
 
 class attr:
-    def __init__(self, dominant_attribute = None, cutpoints = []):
+    def __init__(self, dominant_attribute = None, cutpoint = 0.0):
         self.dominant_attribute = dominant_attribute
-        self.cutpoints = cutpoints
+        self.cutpoint = cutpoint
 
 def readFile():
     f = input("Please enter the name of the input file: ")
@@ -110,14 +110,7 @@ def entropy(num_rows, val_decisions):
     #print(ent)
     return ent
 
-def value_pass(r, a, d, attribute, decision):
-    # Descritize using dominant attribute approach
-    num_columns = []
-    # Considering only numeric columns
-    for column in r.iloc[:, :-1]:
-        if r[column].dtype.kind in "bifc":
-            num_columns.append(column)
-    print(num_columns)
+def value_pass(r, a, d, attribute, decision, num_columns):
     #Setting smallest entropy value infinit
     smallest_entropy = float("inf")
     for column in num_columns:
@@ -188,6 +181,28 @@ def value_pass(r, a, d, attribute, decision):
             dominant_cutpoint = cut
     print(smallest_entropy)
     print(dominant_cutpoint)
+    ob = attr(dominant_attr, dominant_cutpoint)
+    return ob
+
+def descritized_dataset(r, a, ob):
+    decision = list(r)[-1]
+    col = ob.dominant_attribute
+    table = r[[col, decision]]
+    print(table)
+    # List of all the values
+    x = table[col].values.tolist()
+    lower = str(min(x))+".."+str(ob.cutpoint)
+    upper = str(ob.cutpoint)+".."+str(max(x))
+    descritized_list = []
+    for i in x:
+        if i < ob.cutpoint:
+            descritized_list.append(lower)
+        else:
+            descritized_list.append(upper)
+    #table = r[[descritized_list, decision]]
+    table[col] = descritized_list
+    print(descritized_list)
+    print(table)
 
 def descritize(r):
     # Let's compute a* and d*
@@ -197,7 +212,20 @@ def descritize(r):
     decision = all_decisions(d)
     print(r)
     consistency(attribute, decision)
-    value_pass(r, a, d, attribute, decision)
+
+    # Descritize using dominant attribute approach
+    num_columns = []
+    # Considering only numeric columns
+    for column in r.iloc[:, :-1]:
+        if r[column].dtype.kind in "bifc":
+            num_columns.append(column)
+    print(num_columns)
+
+    ob = value_pass(r, a, d, attribute, decision, num_columns)
+    print(ob.dominant_attribute)
+    print(ob.cutpoint)
+    # Now with dominant attribute and cutpoint, drawing a table
+    dataset = descritized_dataset(r, a, ob)
  
 def scanFile(inputFile):
     # Select rows and columns
