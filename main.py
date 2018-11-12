@@ -226,6 +226,8 @@ def descritize(r):
     # Now with dominant attribute and cutpoint, drawing a table
     dataset = descritized_dataset(r, a, ob)
     print(dataset)
+    consistency(all_attributes(dataset.iloc[:, :-1]),
+    all_decisions(dataset.iloc[:, -1:]))
  
 def scanFile(inputFile):
     # Select rows and columns
