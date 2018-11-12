@@ -146,13 +146,48 @@ def value_pass(r, a, d, attribute, decision):
             dominant_attr = column
             # Unique value list
             dom_val_unique = val_unique
+            # list of all decisions in the column
+            dom_val_decisions = val_decisions
     print(smallest_entropy)
     print(dominant_attr)
     print(dom_val_unique)
+    print(dom_val_decisions)
+    # Dictionary of values and frequecy
+    dom_val_dic = dict(zip(dom_val_unique, dom_val_decisions))
+    print(dom_val_dic)
     # Calculating cutpoints
     x = np.array(sorted(dom_val_unique))
     cutpoints = ((x[1:] + x[:-1]) / 2).tolist()
-     
+    smallest_entropy = float("inf")
+    for cut in cutpoints:
+        ent = 0.0
+        cut_vals = []
+        print(cut)
+        #Calculating lower and upper values for the cutpoint
+        lower = [x for x in dom_val_unique if x < cut]
+        upper = [x for x in dom_val_unique if x > cut]
+        lower_val = [dom_val_dic[x] for x in dom_val_dic if x in lower]
+        upper_val = [dom_val_dic[x] for x in dom_val_dic if x in upper]
+        lv_list = []
+        for val in lower_val:
+            lv_list.extend(val)
+        uv_list = []
+        for val in upper_val:
+            uv_list.extend(val)
+        luv_list = []
+        luv_list.append(uv_list)
+        luv_list.append(lv_list)
+        print(luv_list)
+        for val in luv_list:
+            temp = []
+            for i in val:
+                temp.append(all_decision[i])
+            ent += entropy(len(r.index), temp)
+        if ent < smallest_entropy:
+            smallest_entropy = ent
+            dominant_cutpoint = cut
+    print(smallest_entropy)
+    print(dominant_cutpoint)
 
 def descritize(r):
     # Let's compute a* and d*
