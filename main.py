@@ -199,10 +199,9 @@ def descritized_dataset(r, a, ob):
             descritized_list.append(lower)
         else:
             descritized_list.append(upper)
-    #table = r[[descritized_list, decision]]
-    table[col] = descritized_list
+    table[[col, decision]] = table[[col,decision]].replace(x, descritized_list)
     print(descritized_list)
-    print(table)
+    return table
 
 def descritize(r):
     # Let's compute a* and d*
@@ -226,6 +225,7 @@ def descritize(r):
     print(ob.cutpoint)
     # Now with dominant attribute and cutpoint, drawing a table
     dataset = descritized_dataset(r, a, ob)
+    print(dataset)
  
 def scanFile(inputFile):
     # Select rows and columns
