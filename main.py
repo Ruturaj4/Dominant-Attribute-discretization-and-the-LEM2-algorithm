@@ -73,7 +73,7 @@ def all_attributes(a):
             if(a.values[i].tolist() == a.values[j].tolist()):
                 temp.append(j)
                 used.append(j)
-                print(a.values[j])
+                #print(a.values[j])
         attribute.append(set(temp))
     return attribute
 
@@ -88,15 +88,17 @@ def subset(attribute, decision):
     else:
         return False
 
+def conflicting(attribute, decision):
+    return [d for d in decision if not any(d <= a for a in attribute)]
+
 def consistency(attribute, decision):
     print(attribute)
     print(decision)
     if subset(attribute, decision):
         print("It is consistent")
-        return True
     else:
         print("It is not consistent")
-        return False
+        return conflicting(attribute, decision)
 
 def entropy(num_rows, val_decisions):
     # List of unique keys
@@ -170,7 +172,7 @@ def value_pass(r, a, d, attribute, decision, num_columns):
         luv_list = []
         luv_list.append(uv_list)
         luv_list.append(lv_list)
-        print(luv_list)
+        #print(luv_list)
         for val in luv_list:
             temp = []
             for i in val:
@@ -179,8 +181,8 @@ def value_pass(r, a, d, attribute, decision, num_columns):
         if ent < smallest_entropy:
             smallest_entropy = ent
             dominant_cutpoint = cut
-    print(smallest_entropy)
-    print(dominant_cutpoint)
+    #print(smallest_entropy)
+    #print(dominant_cutpoint)
     ob = attr(dominant_attr, dominant_cutpoint)
     return ob
 
@@ -200,7 +202,7 @@ def descritized_dataset(r, a, ob):
         else:
             descritized_list.append(upper)
     table[[col, decision]] = table[[col,decision]].replace(x, descritized_list)
-    print(descritized_list)
+    #print(descritized_list)
     return table
 
 def descritize(r):
@@ -221,13 +223,14 @@ def descritize(r):
     print(num_columns)
 
     ob = value_pass(r, a, d, attribute, decision, num_columns)
-    print(ob.dominant_attribute)
-    print(ob.cutpoint)
+    #print(ob.dominant_attribute)
+    #print(ob.cutpoint)
     # Now with dominant attribute and cutpoint, drawing a table
     dataset = descritized_dataset(r, a, ob)
     print(dataset)
-    consistency(all_attributes(dataset.iloc[:, :-1]),
+    inconsistent_case = consistency(all_attributes(dataset.iloc[:, :-1]),
     all_decisions(dataset.iloc[:, -1:]))
+    print(inconsistent_case)
  
 def scanFile(inputFile):
     # Select rows and columns
