@@ -88,14 +88,16 @@ def subset(attribute, decision):
     else:
         return False
 
+# This function gives conflicting attributes
 def conflicting(attribute, decision):
-    return [d for d in decision if not any(d <= a for a in attribute)]
+    return [d for d in attribute if not any(d <= a for a in decision)]
 
 def consistency(attribute, decision):
     print(attribute)
     print(decision)
     if subset(attribute, decision):
         print("It is consistent")
+        return []
     else:
         print("It is not consistent")
         return conflicting(attribute, decision)
@@ -112,7 +114,7 @@ def entropy(num_rows, val_decisions):
     #print(ent)
     return ent
 
-def value_pass(r, a, d, attribute, decision, num_columns):
+def value_pass(r, alld, a, d, attribute, decision, num_columns):
     #Setting smallest entropy value infinit
     smallest_entropy = float("inf")
     for column in num_columns:
@@ -120,11 +122,16 @@ def value_pass(r, a, d, attribute, decision, num_columns):
         print("Trying: " + column)
         val_decisions = all_decisions(r.loc[:,[column]])
         print(val_decisions)
+        if len(val_decisions) == 1:
+            continue
         # List of Unique values in the column
         val_unique = unique_values(r.loc[:,[column]]).tolist()
         temp = {}
         #caluculating the list of all decisions
-        all_decision = d.iloc[:,0].tolist()
+        all_decision = alld.iloc[:,0].tolist()
+        print(all_decision)
+        print(alld)
+        print(val_unique)
         for i in range(len(val_unique)):
             temp_decision = []
             for j in val_decisions[i]:
@@ -186,6 +193,7 @@ def value_pass(r, a, d, attribute, decision, num_columns):
     ob = attr(dominant_attr, dominant_cutpoint)
     return ob
 
+# This function gives descritized dataset
 def descritized_dataset(r, a, ob):
     decision = list(r)[-1]
     col = ob.dominant_attribute
@@ -205,15 +213,19 @@ def descritized_dataset(r, a, ob):
     #print(descritized_list)
     return table
 
-def descritize(r):
-    # Let's compute a* and d*
-    a = r.iloc[:, :-1].astype(object)
-    attribute = all_attributes(a)
-    d = r.iloc[:, -1:].astype(object)
-    decision = all_decisions(d)
-    print(r)
-    consistency(attribute, decision)
+def compute_a(r):
+    return r.iloc[:, :-1].astype(object)
 
+def compute_d(r):
+    return r.iloc[:, -1:].astype(object)
+
+def dpass(r, all_d):
+    a = compute_a(r)
+    attribute = all_attributes(a)
+    d = compute_d(r)
+    decision = all_decisions(d)
+
+    #consistency(attribute, decision)
     # Descritize using dominant attribute approach
     num_columns = []
     # Considering only numeric columns
@@ -221,8 +233,18 @@ def descritize(r):
         if r[column].dtype.kind in "bifc":
             num_columns.append(column)
     print(num_columns)
+    return value_pass(r, all_d, a, d, attribute, decision, num_columns) 
 
-    ob = value_pass(r, a, d, attribute, decision, num_columns)
+
+def descritize(r):
+    # Let's compute a* and d*
+    a = compute_a(r)
+    attribute = all_attributes(a)
+    d = compute_d(r)
+    decision = all_decisions(d)
+    print(r)
+    
+    ob = dpass(r, d)
     #print(ob.dominant_attribute)
     #print(ob.cutpoint)
     # Now with dominant attribute and cutpoint, drawing a table
@@ -231,7 +253,12 @@ def descritize(r):
     inconsistent_case = consistency(all_attributes(dataset.iloc[:, :-1]),
     all_decisions(dataset.iloc[:, -1:]))
     print(inconsistent_case)
- 
+    lenth = float("inf")
+    small = (min(inconsistent_case, key=len))
+    inconsistent_case = r.loc[list(small)]
+    print(inconsistent_case)
+    obpass = dpass(inconsistent_case, d)
+
 def scanFile(inputFile):
     # Select rows and columns
     r = pd.DataFrame(inputFile[1:], columns=inputFile[0])
