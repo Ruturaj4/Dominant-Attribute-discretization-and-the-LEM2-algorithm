@@ -144,7 +144,7 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
         ent = 0.0
         print("Trying: " + column)
         val_decisions = all_decisions(r.loc[:,[column]])
-        #print(val_decisions)
+        print(val_decisions)
         if len(val_decisions) == 1:
             continue
         # List of Unique values in the column
@@ -152,15 +152,16 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
         temp = {}
         #caluculating the list of all decisions
         all_decision = alld.iloc[:,0].tolist()
-        #print(all_decision)
-        #print(alld)
-        #print(val_unique)
+        print(all_decision)
+        print(alld)
+        print(val_unique)
         for i in range(len(val_unique)):
             temp_decision = []
             for j in val_decisions[i]:
                 temp_decision.append(all_decision[j])
             # Calculating H(D|A) value i.e. entropy value
             ent += entropy(len(r.index), temp_decision)
+            print(ent)
             temp.update({val_unique[i]:temp_decision})
         print("Final Entropy:")
         print(ent)
@@ -208,6 +209,7 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
             for i in val:
                 temp.append(all_decision[i])
             ent += entropy(len(r.index), temp)
+            print(ent)
         if ent < smallest_entropy:
             smallest_entropy = ent
             dominant_cutpoint = cut
@@ -218,14 +220,18 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
         ob.g_cutpoints[dominant_attr].append(dominant_cutpoint)
     else:
         ob.g_cutpoints[dominant_attr] = [dominant_cutpoint]
-
     return ob
 
 # This function gives descritized dataset
 def descritized_dataset(r, a, ob):
     decision = list(r)[-1]
     col = ob.dominant_attribute
+    ob_columns = []
+    for column in r.iloc[:, :-1]:
+        if r[column].dtype.kind not in "bifc":
+            ob_columns.append(column)
     table = r[[col, decision]]
+    table = (pd.concat([r[col], r[ob_columns], r[decision]], axis=1))
     print(table)
     # List of all the values
     x = table[col].values.tolist()
@@ -239,6 +245,7 @@ def descritized_dataset(r, a, ob):
             descritized_list.append(upper)
     table[[col, decision]] = table[[col,decision]].replace(x, descritized_list)
     print(descritized_list)
+    print(table)
     return table
 
 # Computes attributes
