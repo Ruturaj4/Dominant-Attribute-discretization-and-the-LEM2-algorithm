@@ -11,11 +11,19 @@ import numpy as np
 import readline
 readline.parse_and_bind("tab: complete")
 
+# Attribute class contains dominant attribute and a cutpoint
 class attr:
     def __init__(self, dominant_attribute = None, cutpoint = 0.0):
         self.dominant_attribute = dominant_attribute
         self.cutpoint = cutpoint
 
+# Class keeps consistency matrix
+class ConsistencyMatrix:
+    def __init__(self, consistency = True, inconsistent_cases = []):
+        self.consistency = consistency
+        self.inconsistent_cases = inconsistent_cases
+
+# This function reads the file and deletes some unwanted data
 def readFile():
     f = input("Please enter the name of the input file: ")
     print("You entered: " + f)
@@ -37,6 +45,7 @@ def readFile():
                     inputFile.append(line)
     return inputFile
 
+# This function returns [[0, 1, 2], [3, 4], [5], [0, 1, 3, 4], [2, 5]]
 def each_attribute(a):
     attribute = []
     for i in range(len(list(a))):
@@ -45,9 +54,11 @@ def each_attribute(a):
     # Returns something like - [[0, 1, 2], [3, 4], [5], [0, 1, 3, 4], [2, 5]]
     return attribute
 
+# This function returns unique values - [1.4, 1.8]
 def unique_values(d):
     return (d[list(d)[0]].unique())
 
+# This function returns all the decisions - ["Medium", "Low"]
 def all_decisions(d):
     # temp maintains decision
     decision = []
@@ -57,6 +68,7 @@ def all_decisions(d):
         decision.append(set(d.index[d[list(d)[0]] == value].tolist()))
     return decision
 
+# This function returns all the attributes
 def all_attributes(a):
     #print(list(a.index.values)) #Print indexes
     # atribute maintains decision
@@ -77,6 +89,7 @@ def all_attributes(a):
         attribute.append(set(temp))
     return attribute
 
+# Checks if the subset of ....
 def subset(attribute, decision):
     check = []
     for i in attribute:
@@ -97,11 +110,18 @@ def consistency(attribute, decision):
     print(decision)
     if subset(attribute, decision):
         print("It is consistent")
-        return []
+        con = ConsistencyMatrix()
+        con.consistency = True
+        con.inconsistent_cases = []
+        return con
     else:
         print("It is not consistent")
-        return conflicting(attribute, decision)
+        con = ConsistencyMatrix()
+        con.consistency = False
+        con.inconsistent_cases = conflicting(attribute, decision)
+        return con
 
+# This function gives entropy
 def entropy(num_rows, val_decisions):
     # List of unique keys
     #print(list(Counter(val_decisions).keys()))
@@ -114,6 +134,7 @@ def entropy(num_rows, val_decisions):
     #print(ent)
     return ent
 
+# This is a pass which returns the class object
 def value_pass(r, alld, a, d, attribute, decision, num_columns):
     #Setting smallest entropy value infinit
     smallest_entropy = float("inf")
@@ -121,7 +142,7 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
         ent = 0.0
         print("Trying: " + column)
         val_decisions = all_decisions(r.loc[:,[column]])
-        print(val_decisions)
+        #print(val_decisions)
         if len(val_decisions) == 1:
             continue
         # List of Unique values in the column
@@ -129,9 +150,9 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
         temp = {}
         #caluculating the list of all decisions
         all_decision = alld.iloc[:,0].tolist()
-        print(all_decision)
-        print(alld)
-        print(val_unique)
+        #print(all_decision)
+        #print(alld)
+        #print(val_unique)
         for i in range(len(val_unique)):
             temp_decision = []
             for j in val_decisions[i]:
@@ -191,6 +212,7 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
     #print(smallest_entropy)
     #print(dominant_cutpoint)
     ob = attr(dominant_attr, dominant_cutpoint)
+    setattr(ob, dominant_attr, 5)
     return ob
 
 # This function gives descritized dataset
@@ -210,22 +232,25 @@ def descritized_dataset(r, a, ob):
         else:
             descritized_list.append(upper)
     table[[col, decision]] = table[[col,decision]].replace(x, descritized_list)
-    #print(descritized_list)
+    print(descritized_list)
     return table
 
+# Computes attributes
 def compute_a(r):
     return r.iloc[:, :-1].astype(object)
 
+# Computes decisions
 def compute_d(r):
     return r.iloc[:, -1:].astype(object)
 
+# Helper function
 def dpass(r, all_d):
     a = compute_a(r)
     attribute = all_attributes(a)
     d = compute_d(r)
     decision = all_decisions(d)
+    #consistency(attribute, decision) - Let's leave this for now
 
-    #consistency(attribute, decision)
     # Descritize using dominant attribute approach
     num_columns = []
     # Considering only numeric columns
@@ -235,7 +260,6 @@ def dpass(r, all_d):
     print(num_columns)
     return value_pass(r, all_d, a, d, attribute, decision, num_columns) 
 
-
 def descritize(r):
     # Let's compute a* and d*
     a = compute_a(r)
@@ -244,20 +268,41 @@ def descritize(r):
     decision = all_decisions(d)
     print(r)
     
-    ob = dpass(r, d)
-    #print(ob.dominant_attribute)
-    #print(ob.cutpoint)
-    # Now with dominant attribute and cutpoint, drawing a table
-    dataset = descritized_dataset(r, a, ob)
-    print(dataset)
-    inconsistent_case = consistency(all_attributes(dataset.iloc[:, :-1]),
-    all_decisions(dataset.iloc[:, -1:]))
-    print(inconsistent_case)
-    lenth = float("inf")
-    small = (min(inconsistent_case, key=len))
-    inconsistent_case = r.loc[list(small)]
-    print(inconsistent_case)
-    obpass = dpass(inconsistent_case, d)
+    # rc is the copy
+    rc = r
+    counter = 0
+    dataset = pd.DataFrame()
+    # Let's leave the consistency check for now
+    while True:
+        counter += 1
+        # Pass - dominant attribute and cutpoints
+        ob = dpass(rc, d)
+        
+        if counter == 4:
+            break
+        # Descritized attribute table using cutpoints
+        dataset = pd.concat([dataset.iloc[:,:-1], descritized_dataset(r, a, ob)], axis=1)
+        print("This is the final dataset")
+        print(dataset)
+
+        # Find consistency
+        con = consistency(all_attributes(dataset.iloc[:, :-1]),all_decisions(dataset.iloc[:, -1:]))
+        inconsistent_case = con.inconsistent_cases
+        if (con.consistency == True):
+            print(con.consistency)
+            break
+
+        # Get the inconsistent cases
+        small = (min(inconsistent_case, key=len))
+        inconsistent_case = r.loc[list(small)]
+        print(inconsistent_case)
+        
+        # Now let's change our rc with inconsistent_case
+        rc = inconsistent_case
+
+        # For now using a counter logic to break
+        #if counter == 3:
+        #    break
 
 def scanFile(inputFile):
     # Select rows and columns
