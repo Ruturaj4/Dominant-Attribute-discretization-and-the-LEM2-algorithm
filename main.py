@@ -11,11 +11,13 @@ import numpy as np
 import readline
 readline.parse_and_bind("tab: complete")
 
+
 # Attribute class contains dominant attribute and a cutpoint
 class attr:
-    def __init__(self, dominant_attribute = None, cutpoint = 0.0):
+    def __init__(self, dominant_attribute = None, cutpoint = 0.0, g_cutpoints = {}):
         self.dominant_attribute = dominant_attribute
         self.cutpoint = cutpoint
+        self.g_cutpoints = g_cutpoints
 
 # Class keeps consistency matrix
 class ConsistencyMatrix:
@@ -212,7 +214,11 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
     #print(smallest_entropy)
     #print(dominant_cutpoint)
     ob = attr(dominant_attr, dominant_cutpoint)
-    setattr(ob, dominant_attr, 5)
+    if dominant_attr in ob.g_cutpoints:
+        ob.g_cutpoints[dominant_attr].append(dominant_cutpoint)
+    else:
+        ob.g_cutpoints[dominant_attr] = [dominant_cutpoint]
+
     return ob
 
 # This function gives descritized dataset
@@ -277,7 +283,8 @@ def descritize(r):
         counter += 1
         # Pass - dominant attribute and cutpoints
         ob = dpass(rc, d)
-        
+        print(ob.g_cutpoints)
+
         if counter == 4:
             break
         # Descritized attribute table using cutpoints
