@@ -222,8 +222,11 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
         ob.g_cutpoints[dominant_attr] = [dominant_cutpoint]
     return ob
 
+# Create a global dataset
+dataset = pd.DataFrame()
 # This function gives descritized dataset
 def descritized_dataset(r, a, ob):
+    global dataset
     decision = list(r)[-1]
     col = ob.dominant_attribute
     ob_columns = []
@@ -235,15 +238,43 @@ def descritized_dataset(r, a, ob):
     print(table)
     # List of all the values
     x = table[col].values.tolist()
-    lower = str(min(x))+".."+str(ob.cutpoint)
-    upper = str(ob.cutpoint)+".."+str(max(x))
-    descritized_list = []
-    for i in x:
-        if i < ob.cutpoint:
-            descritized_list.append(lower)
-        else:
-            descritized_list.append(upper)
-    table[[col, decision]] = table[[col,decision]].replace(x, descritized_list)
+    print(ob.g_cutpoints)
+    print(ob.dominant_attribute)
+    if len(ob.g_cutpoints[ob.dominant_attribute]) == 1:
+        lower = str(min(x))+".."+str(ob.cutpoint)
+        upper = str(ob.cutpoint)+".."+str(max(x))
+        descritized_list = []
+        for i in x:
+            if i < ob.cutpoint:
+                descritized_list.append(lower)
+            else:
+                descritized_list.append(upper)
+        table[[col, decision]] = table[[col,decision]].replace(x, descritized_list)
+        table = pd.concat([dataset.iloc[:,:-1], table],axis=1)
+    else:
+        descritized_list = []
+        lower = str(min(x))+".."+str(min(ob.g_cutpoints[ob.dominant_attribute]))
+        upper = str(max(ob.g_cutpoints[ob.dominant_attribute]))+".."+str(max(x))
+        print(lower)
+        print(upper)
+        for i in x:
+            print(i)
+            if i < min(ob.g_cutpoints[ob.dominant_attribute]):
+                descritized_list.append(lower)
+            elif i > max(ob.g_cutpoints[ob.dominant_attribute]):
+                descritized_list.append(upper)
+            else:
+                for j in range(len(ob.g_cutpoints[ob.dominant_attribute])):
+                    if i < ob.g_cutpoints[ob.dominant_attribute][j]:
+                        descritized_list.append(str(ob.g_cutpoints[ob.dominant_attribute][j-1]) + ".." + str(ob.g_cutpoints[ob.dominant_attribute][j]))
+                        break
+        new_df = pd.DataFrame({col:descritized_list})
+        #print(dataset)
+        #print(descritized_list)
+        dataset[col] = descritized_list
+        table = dataset
+        #table[[col, decision]] = table[[col,decision]].replace(x,descritized_list)
+        #table = pd.concat([dataset.iloc[:,:-1], table],axis=1)
     print(descritized_list)
     print(table)
     return table
@@ -284,7 +315,7 @@ def descritize(r):
     # rc is the copy
     rc = r
     counter = 0
-    dataset = pd.DataFrame()
+    #dataset = pd.DataFrame()
     # Let's leave the consistency check for now
     while True:
         counter += 1
@@ -292,10 +323,11 @@ def descritize(r):
         ob = dpass(rc, d)
         print(ob.g_cutpoints)
 
-        if counter == 4:
-            break
+        #if counter == 4:
+        #    break
         # Descritized attribute table using cutpoints
-        dataset = pd.concat([dataset.iloc[:,:-1], descritized_dataset(r, a, ob)], axis=1)
+        global dataset
+        dataset = descritized_dataset(r, a, ob)
         print("This is the final dataset")
         print(dataset)
 
@@ -313,10 +345,6 @@ def descritize(r):
         
         # Now let's change our rc with inconsistent_case
         rc = inconsistent_case
-
-        # For now using a counter logic to break
-        #if counter == 3:
-        #    break
 
 def scanFile(inputFile):
     # Select rows and columns
