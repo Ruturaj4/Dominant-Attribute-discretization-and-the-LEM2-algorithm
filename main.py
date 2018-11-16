@@ -337,6 +337,7 @@ def descritize(r):
             # Saving the descritized dataset into pickle file
             b = pd.read_pickle('myfile.disk')
             print(b)
+            return dataset.copy()
             break
         # Find consistency
         con = consistency(all_attributes(dataset.iloc[:, :-1]),all_decisions(dataset.iloc[:, -1:]))
@@ -346,6 +347,7 @@ def descritize(r):
             dataset.to_pickle("myfile.disk")
             b = pd.read_pickle('myfile.disk')
             print(b)
+            return dataset.copy()
             break
 
         # Get the inconsistent cases
@@ -355,6 +357,13 @@ def descritize(r):
         # Now let's change our rc with inconsistent_case
         rc = inconsistent_case.copy()
         print(rc)
+
+def lem2(lemtable):
+    print("We'll start lem2 algorithm")
+    print("We'll first check if the table is consistent")
+    con = consistency(all_attributes(lemtable.iloc[:,:-1]),all_decisions(lemtable.iloc[:, -1:]))
+
+
 
 def scanFile(inputFile):
     # Select rows and columns
@@ -367,7 +376,10 @@ def scanFile(inputFile):
         if r[column].dtype.kind in 'bifc':
             numeric = True
     if (numeric):
-        descritize(r)
+        dataset = descritize(r)
+        lem2(dataset.copy())
+    else:
+        lem2(r.copy())
 
 def main():
     inputFile = readFile()
