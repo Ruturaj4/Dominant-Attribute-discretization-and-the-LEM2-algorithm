@@ -7,6 +7,9 @@ from math import log
 from collections import Counter
 import numpy as np
 
+# For error handling
+import os.path
+
 # For tab completion
 import readline
 readline.parse_and_bind("tab: complete")
@@ -14,10 +17,11 @@ readline.parse_and_bind("tab: complete")
 
 # Attribute class contains dominant attribute and a cutpoint
 class attr:
-    def __init__(self, dominant_attribute = None, cutpoint = 0.0, g_cutpoints = {}):
+    def __init__(self, dominant_attribute = None, cutpoint = 0.0, g_cutpoints = {}, g_count = 0):
         self.dominant_attribute = dominant_attribute
         self.cutpoint = cutpoint
         self.g_cutpoints = g_cutpoints
+        self.g_count = g_count
 
 # Class keeps consistency matrix
 class ConsistencyMatrix:
@@ -27,7 +31,12 @@ class ConsistencyMatrix:
 
 # This function reads the file and deletes some unwanted data
 def readFile():
-    f = input("Please enter the name of the input file: ")
+    while True:
+        f = input("Please enter the name of the input file: ")
+        if(os.path.exists(f)):
+            break
+        else:
+            print("Check your path!")
     print("You entered: " + f)
     inputFile = []
     with open(f, "r") as filename:
@@ -132,8 +141,6 @@ def entropy(num_rows, val_decisions):
     ent = 0.0
     for x in sizes:
         ent += -(x/num_rows)*log((x/len(val_decisions)),2)
-    #print("Entropy calculated:")
-    #print(ent)
     return ent
 
 # This is a pass which returns the class object
@@ -142,9 +149,8 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
     smallest_entropy = float("inf")
     for column in num_columns:
         ent = 0.0
-        print("Trying: " + column)
         val_decisions = all_decisions(r.loc[:,[column]])
-        print(val_decisions)
+        #print(val_decisions)
         if len(val_decisions) == 1:
             continue
         # List of Unique values in the column
@@ -152,20 +158,18 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
         temp = {}
         #caluculating the list of all decisions
         all_decision = alld.iloc[:,0].tolist()
-        print(all_decision)
-        print(alld)
-        print(val_unique)
+        #print(all_decision) #- list of quality
+        #print(alld) #- table of quality
+        #print(val_unique) # - [4.7, 4.5, 4.3] - Unique values in the column
+        # Here it finds the entropy
         for i in range(len(val_unique)):
             temp_decision = []
             for j in val_decisions[i]:
                 temp_decision.append(all_decision[j])
             # Calculating H(D|A) value i.e. entropy value
             ent += entropy(len(r.index), temp_decision)
-            print(ent)
             temp.update({val_unique[i]:temp_decision})
-        print("Final Entropy:")
-        print(ent)
-        #print(val_unique)
+
         if (ent < smallest_entropy):
             smallest_entropy = ent
             # Dominant attribute
@@ -174,21 +178,18 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
             dom_val_unique = val_unique
             # list of all decisions in the column
             dom_val_decisions = val_decisions
-    print(smallest_entropy)
-    print(dominant_attr)
-    print(dom_val_unique)
-    print(dom_val_decisions)
+    #print(dom_val_unique)
+    #print(dom_val_decisions)
     # Dictionary of values and frequecy
     dom_val_dic = dict(zip(dom_val_unique, dom_val_decisions))
-    print(dom_val_dic)
     # Calculating cutpoints
     x = np.array(sorted(dom_val_unique))
     cutpoints = ((x[1:] + x[:-1]) / 2).tolist()
+    #print(cutpoints) # - Contains all the cutpoints
     smallest_entropy = float("inf")
     for cut in cutpoints:
         ent = 0.0
         cut_vals = []
-        print(cut)
         #Calculating lower and upper values for the cutpoint
         lower = [x for x in dom_val_unique if x < cut]
         upper = [x for x in dom_val_unique if x > cut]
@@ -209,7 +210,7 @@ def value_pass(r, alld, a, d, attribute, decision, num_columns):
             for i in val:
                 temp.append(all_decision[i])
             ent += entropy(len(r.index), temp)
-            print(ent)
+            #print(ent)
         if ent < smallest_entropy:
             smallest_entropy = ent
             dominant_cutpoint = cut
@@ -235,11 +236,11 @@ def descritized_dataset(r, a, ob):
             ob_columns.append(column)
     table = r[[col, decision]]
     table = (pd.concat([r[col], r[ob_columns], r[decision]], axis=1))
-    print(table)
+    #print(table)
     # List of all the values
     x = table[col].values.tolist()
-    print(ob.g_cutpoints)
-    print(ob.dominant_attribute)
+    #print(ob.g_cutpoints)
+    #print(ob.dominant_attribute)
     if len(ob.g_cutpoints[ob.dominant_attribute]) == 1:
         lower = str(min(x))+".."+str(ob.cutpoint)
         upper = str(ob.cutpoint)+".."+str(max(x))
@@ -250,15 +251,15 @@ def descritized_dataset(r, a, ob):
             else:
                 descritized_list.append(upper)
         table[[col, decision]] = table[[col,decision]].replace(x, descritized_list)
-        table = pd.concat([dataset.iloc[:,:-1], table],axis=1)
+        table = pd.concat([dataset.iloc[:,:-1].copy(), table],axis=1)
     else:
         descritized_list = []
         lower = str(min(x))+".."+str(min(ob.g_cutpoints[ob.dominant_attribute]))
         upper = str(max(ob.g_cutpoints[ob.dominant_attribute]))+".."+str(max(x))
-        print(lower)
-        print(upper)
+        #print(lower)
+        #print(upper)
         for i in x:
-            print(i)
+            #print(i)
             if i < min(ob.g_cutpoints[ob.dominant_attribute]):
                 descritized_list.append(lower)
             elif i > max(ob.g_cutpoints[ob.dominant_attribute]):
@@ -272,11 +273,11 @@ def descritized_dataset(r, a, ob):
         #print(dataset)
         #print(descritized_list)
         dataset[col] = descritized_list
-        table = dataset
+        table = dataset.copy()
         #table[[col, decision]] = table[[col,decision]].replace(x,descritized_list)
         #table = pd.concat([dataset.iloc[:,:-1], table],axis=1)
-    print(descritized_list)
-    print(table)
+    #print(descritized_list)
+    #print(table)
     return table
 
 # Computes attributes
@@ -289,62 +290,71 @@ def compute_d(r):
 
 # Helper function
 def dpass(r, all_d):
-    a = compute_a(r)
+    a = compute_a(r.copy())
     attribute = all_attributes(a)
-    d = compute_d(r)
+    d = compute_d(r.copy())
     decision = all_decisions(d)
-    #consistency(attribute, decision) - Let's leave this for now
-
     # Descritize using dominant attribute approach
     num_columns = []
     # Considering only numeric columns
     for column in r.iloc[:, :-1]:
         if r[column].dtype.kind in "bifc":
             num_columns.append(column)
+    print("num columns:")
     print(num_columns)
     return value_pass(r, all_d, a, d, attribute, decision, num_columns) 
 
 def descritize(r):
     # Let's compute a* and d*
-    a = compute_a(r)
+    a = compute_a(r.copy())
     attribute = all_attributes(a)
-    d = compute_d(r)
+    d = compute_d(r.copy())
     decision = all_decisions(d)
-    print(r)
+    #print(r)
     
     # rc is the copy
-    rc = r
+    rc = r.copy()
     counter = 0
     #dataset = pd.DataFrame()
     # Let's leave the consistency check for now
     while True:
         counter += 1
-        # Pass - dominant attribute and cutpoints
-        ob = dpass(rc, d)
-        print(ob.g_cutpoints)
-
-        #if counter == 4:
+        #if counter == 2:
         #    break
+        # Pass - dominant attribute and cutpoints
+        ob = dpass(rc.copy(), d)
+        #print(rc)
         # Descritized attribute table using cutpoints
         global dataset
-        dataset = descritized_dataset(r, a, ob)
+        dataset = (descritized_dataset(r.copy(), a, ob)).copy()
         print("This is the final dataset")
         print(dataset)
-
+        decs = False
+        print(len(r.columns))
+        if(len(dataset.columns)==len(r.columns)):
+            print("yes")
+            dataset.to_pickle("myfile.disk")
+            # Saving the descritized dataset into pickle file
+            b = pd.read_pickle('myfile.disk')
+            print(b)
+            break
         # Find consistency
         con = consistency(all_attributes(dataset.iloc[:, :-1]),all_decisions(dataset.iloc[:, -1:]))
         inconsistent_case = con.inconsistent_cases
         if (con.consistency == True):
-            print(con.consistency)
+            # Saving the descritized dataset into pickle file
+            dataset.to_pickle("myfile.disk")
+            b = pd.read_pickle('myfile.disk')
+            print(b)
             break
 
         # Get the inconsistent cases
         small = (min(inconsistent_case, key=len))
-        inconsistent_case = r.loc[list(small)]
-        print(inconsistent_case)
+        inconsistent_case = r.loc[list(small)].copy()
         
         # Now let's change our rc with inconsistent_case
-        rc = inconsistent_case
+        rc = inconsistent_case.copy()
+        print(rc)
 
 def scanFile(inputFile):
     # Select rows and columns

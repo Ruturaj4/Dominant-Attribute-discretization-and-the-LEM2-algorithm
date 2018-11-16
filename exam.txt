@@ -1,0 +1,7 @@
+< a a d >
+[ Height Weight Strength ]
+4.3 4.7 low
+4.3 3.5 low
+5.3 4.7 low
+5.3 3.5 high
+2.9 2.3 high
