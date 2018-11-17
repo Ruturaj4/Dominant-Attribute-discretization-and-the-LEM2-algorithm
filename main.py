@@ -380,7 +380,10 @@ def consistent(lemtable):
     print(attribute)
     print(decision)
     print(a)
-    print(each_attribute(a))
+    avpairs = each_attribute(a)
+    data = {"Case" : pd.Series(list(avpairs.values()), index = avpairs.keys())}
+    lem = pd.DataFrame(data)
+    print(lem)
 
 
 def inconsistent():
