@@ -56,14 +56,27 @@ def readFile():
                     inputFile.append(line)
     return inputFile
 
-# This function returns [[0, 1, 2], [3, 4], [5], [0, 1, 3, 4], [2, 5]]
+def avblock(total):
+    dic = {}
+    for key in total:
+        set = ()
+        for value in total[key]:
+            set = (key, value)
+            dic[set] = total[key][value]
+    print(set)
+    return dic
+
+# This function calculates and then returns avblock{'Weight': {'Medium': [1, 4], 'High': [0, 3, 5],
+# 'Low': [2]}, 'Noise': {'low': [0, 1, 3, 4], 'medium': [2, 5]}, 'Comfort':
+# {'low': [0], 'high': [1, 2, 3, 4, 5]}}
 def each_attribute(a):
-    attribute = []
+    total = {}
     for i in range(len(list(a))):
+        attribute = {}
         for value in a[list(a)[i]].unique():
-            attribute.append(a.index[a[list(a)[i]] == value].tolist())
-    # Returns something like - [[0, 1, 2], [3, 4], [5], [0, 1, 3, 4], [2, 5]]
-    return attribute
+            attribute[value] = (a.index[a[list(a)[i]] == value].tolist())
+        total[list(a)[i]] = attribute
+    return avblock(total)
 
 # This function returns unique values - [1.4, 1.8]
 def unique_values(d):
@@ -358,12 +371,29 @@ def descritize(r):
         rc = inconsistent_case.copy()
         print(rc)
 
+def consistent(lemtable):
+    print("Do consistent stuff")
+    a = compute_a(lemtable.copy())
+    attribute = all_attributes(a)
+    d = compute_d(lemtable.copy())
+    decision = all_decisions(d)
+    print(attribute)
+    print(decision)
+    print(a)
+    print(each_attribute(a))
+
+
+def inconsistent():
+        print("Do non-consistent stuff")
+
 def lem2(lemtable):
     print("We'll start lem2 algorithm")
     print("We'll first check if the table is consistent")
     con = consistency(all_attributes(lemtable.iloc[:,:-1]),all_decisions(lemtable.iloc[:, -1:]))
-
-
+    if (con.consistency):
+        consistent(lemtable.copy())
+    else:
+        inconsistent(lemtable.copy())
 
 def scanFile(inputFile):
     # Select rows and columns
