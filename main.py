@@ -56,6 +56,7 @@ def readFile():
                     inputFile.append(line)
     return inputFile
 
+# Gives a nice dictionary of attributes and cases
 def avblock(total):
     dic = {}
     for key in total:
@@ -63,7 +64,6 @@ def avblock(total):
         for value in total[key]:
             set = (key, value)
             dic[set] = total[key][value]
-    print(set)
     return dic
 
 # This function calculates and then returns avblock{'Weight': {'Medium': [1, 4], 'High': [0, 3, 5],
@@ -371,21 +371,45 @@ def descritize(r):
         rc = inconsistent_case.copy()
         print(rc)
 
+def casecal(avpairs, v, intersections):
+    highest_len = -1
+    lowest_case_len = float("inf")
+    max_len = max([len(i) for i in intersections])
+    max_len = ([i for i in intersections if len(i) == max_len])
+    for i,j in avpairs.items():
+        if len(set(v)-(set(v)-set(j))) == len(max(intersections, key=len)):
+            if len(j) < lowest_case_len:
+                lowest_case_len = len(j)
+                selection = (set(v)-(set(v)-set(j)))
+    return selection
+
+def lemcal(avpairs, v):
+    # List that maintains intersections
+    intersections = []
+    for i,j in avpairs.items():
+        intersections.append(set(v)-(set(v)-set(j)))
+    print(intersections)
+    return casecal(avpairs, v, intersections)
+    
 def consistent(lemtable):
     print("Do consistent stuff")
+    print(lemtable)
     a = compute_a(lemtable.copy())
     attribute = all_attributes(a)
     d = compute_d(lemtable.copy())
     decision = all_decisions(d)
-    print(attribute)
-    print(decision)
-    print(a)
     avpairs = each_attribute(a)
-    data = {"Case" : pd.Series(list(avpairs.values()), index = avpairs.keys())}
+    dpairs = each_attribute(d)
+    print(dpairs)
+    print(avpairs)
+    data = {"Cases" : pd.Series(list(avpairs.values()), index = avpairs.keys())}
     lem = pd.DataFrame(data)
     print(lem)
-
-
+    for k,v in dpairs.items():
+        print("Calculating for: ")
+        print(v)
+        print(lemcal(avpairs, v))
+        
 def inconsistent():
         print("Do non-consistent stuff")
 
