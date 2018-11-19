@@ -371,7 +371,13 @@ def descritize(r):
         rc = inconsistent_case.copy()
         print(rc)
 
-def casecal(avpairs, v, intersections):
+class Selection:
+    def __init__(self, selection = {}, index = {}, total = {}):
+        self.selection = selection
+        self.index = index
+        self.total = total
+
+def casecal(avpairs, v, intersections, selob):
     highest_len = -1
     lowest_case_len = float("inf")
     max_len = max([len(i) for i in intersections])
@@ -380,16 +386,27 @@ def casecal(avpairs, v, intersections):
         if len(set(v)-(set(v)-set(j))) == len(max(intersections, key=len)):
             if len(j) < lowest_case_len:
                 lowest_case_len = len(j)
-                selection = (set(v)-(set(v)-set(j)))
-    return selection
+                selob.selection = (set(v)-(set(v)-set(j)))
+                selob.index = j
+    return selob
 
-def lemcal(avpairs, v):
+def lemcal(avpairs, v, selob):
     # List that maintains intersections
     intersections = []
     for i,j in avpairs.items():
-        intersections.append(set(v)-(set(v)-set(j)))
+        if j == selob.index:
+            intersections.append(set())
+        else:
+            intersections.append(set(selob.selection)-(set(selob.selection)-set(j)))
     print(intersections)
-    return casecal(avpairs, v, intersections)
+    selob = casecal(avpairs, selob.selection, intersections, selob)
+    print(selob.selection)
+    print(selob.index)
+    print(str(selob.index)+" is a subset of "+str(v))
+    print(set(selob.index).issubset(set(v)))
+    selob.selection = set(selob.index).intersection(set(v))
+    print(selob.selection)
+    return selob.selection
     
 def consistent(lemtable):
     print("Do consistent stuff")
@@ -408,7 +425,10 @@ def consistent(lemtable):
     for k,v in dpairs.items():
         print("Calculating for: ")
         print(v)
-        print(lemcal(avpairs, v))
+        selob = Selection(v)
+        selob.selection = set(lemcal(avpairs, v, selob)).intersection(set(v))
+        set(lemcal(avpairs, v, selob))
+        break
         
 def inconsistent():
         print("Do non-consistent stuff")
