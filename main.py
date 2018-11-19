@@ -404,7 +404,8 @@ def lemcal(avpairs, v, selob):
     print(selob.index)
     print(str(selob.index)+" is a subset of "+str(v))
     print(set(selob.index).issubset(set(v)))
-    selob.selection = set(selob.index).intersection(set(v))
+    selob.total = set(selob.total).intersection(selob.index)
+    selob.selection = set(selob.total).intersection(set(v))
     print(selob.selection)
     return selob.selection
     
@@ -422,10 +423,12 @@ def consistent(lemtable):
     data = {"Cases" : pd.Series(list(avpairs.values()), index = avpairs.keys())}
     lem = pd.DataFrame(data)
     print(lem)
+    print(len(lemtable))
     for k,v in dpairs.items():
         print("Calculating for: ")
         print(v)
         selob = Selection(v)
+        selob.total = ([i for i in range(len(lem.values)-1)])
         selob.selection = set(lemcal(avpairs, v, selob)).intersection(set(v))
         set(lemcal(avpairs, v, selob))
         break
