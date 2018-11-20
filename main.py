@@ -71,6 +71,7 @@ def avblock(total):
 # {'low': [0], 'high': [1, 2, 3, 4, 5]}}
 def each_attribute(a):
     total = {}
+    print(a)
     for i in range(len(list(a))):
         attribute = {}
         for value in a[list(a)[i]].unique():
@@ -417,22 +418,35 @@ def lemcal(avpairs, v, selob):
     selob = casecal(avpairs, selob.selection, intersections, selob)
     return selob
     
-def consistent(lemtable):
-    print("Do consistent stuff")
-    print(lemtable)
+def lem2(lemtable):
     a = compute_a(lemtable.copy())
     attribute = all_attributes(a)
     d = compute_d(lemtable.copy())
     decision = all_decisions(d)
-    avp = each_attribute(a)
-    dpairs = each_attribute(d)
-    print(dpairs)
-    print(avp)
+    print("We'll start lem2 algorithm")
+    print("We'll first check if the table is consistent")
+    con = consistency(all_attributes(lemtable.iloc[:,:-1]),all_decisions(lemtable.iloc[:, -1:]))
+    if (con.consistency):
+        avp = each_attribute(a)
+        dpairs = each_attribute(d)
+    else:
+        avp = each_attribute(a)
+        print("This is d")
+        print(d)
+        lx = lowerappx(lemtable, attribute, decision)
+        ux = upperappx(lemtable, attribute, decision)
+        print(ux)
+        print("**************")
+        print(lx)
+        dpairs = ux 
+
+    print(lemtable)
     data = {"Cases" : pd.Series(list(avp.values()), index = avp.keys())}
     lem = pd.DataFrame(data)
     print(lem)
-    print(len(lemtable))
     for k,v in dpairs.items():
+        if not v:
+            continue
         print("Calculating for: ")
         print(v)
         selob = Selection(v)
@@ -484,6 +498,26 @@ def consistent(lemtable):
                     print(avpairs)
 
 def lowerappx(lemtable, attribute, decision):
+    print(lemtable)
+    a = lemtable.iloc[:, -1:]
+    print(a)
+    total = {}
+    for i in range(len(list(a))):
+        attributes = {}
+        for value in a[list(a)[i]].unique():
+            attributes[value] = (a.index[a[list(a)[i]] == value].tolist())
+            print(attributes[value])
+            for j in attribute:
+                if j.issubset(attributes[value]):
+                    continue
+                else:
+                    attributes[value] = list(set(attributes[value]) - j)
+        total[list(a)[i]] = attributes
+        print(attributes)
+    return avblock(total)
+    
+
+"""
     print("Lower Approximation")
     lx = []
     for i in decision:
@@ -492,12 +526,39 @@ def lowerappx(lemtable, attribute, decision):
                 continue
             else:
                 i = i - j
-        lx.append(i)
+        if i:
+            lx.append(i)
+        else:
+            lx.append({})
     print(lx)
+    return lx
+"""
         
 def upperappx(lemtable, attribute, decision):
     print("Upper Approximation")
+    a = lemtable.iloc[:, -1:]
+    print(a)
+    total = {}
+    for i in range(len(list(a))):
+        attributes = {}
+        for value in a[list(a)[i]].unique():
+            temp = []
+            attributes[value] = (a.index[a[list(a)[i]] == value].tolist())
+            print(attributes[value])
+            for m in attributes[value]:
+                for n in attribute:
+                    if m in n:
+                        temp.extend(n)
+            attributes[value] = temp
+        total[list(a)[i]] = attributes
+    print("I am here")
+    print(total)
+    return avblock(total) 
+                        
+"""
+    
     ux = []
+
     for i in decision:
         temp = []
         for j in i:
@@ -505,7 +566,9 @@ def upperappx(lemtable, attribute, decision):
                 if j in k:
                     (temp).extend(k)
         ux.append(set(temp))
-    print(ux)
+    return ux
+
+"""
 
 def inconsistent(lemtable):
     print("Do non-consistent stuff")
@@ -522,19 +585,7 @@ def inconsistent(lemtable):
     lem = pd.DataFrame(data)
     print(lem)
     print(len(lemtable))
-    lowerappx(lemtable, attribute, decision)
-    upperappx(lemtable, attribute, decision)
-
-
-def lem2(lemtable):
-    print("We'll start lem2 algorithm")
-    print("We'll first check if the table is consistent")
-    con = consistency(all_attributes(lemtable.iloc[:,:-1]),all_decisions(lemtable.iloc[:, -1:]))
-    if (con.consistency):
-        consistent(lemtable.copy())
-    else:
-        inconsistent(lemtable.copy())
-
+    
 def scanFile(inputFile):
     # Select rows and columns
     r = pd.DataFrame(inputFile[1:], columns=inputFile[0])
