@@ -485,12 +485,27 @@ def consistent(lemtable):
 
 def lowerappx(lemtable, attribute, decision):
     print("Lower Approximation")
-    print(attribute)
-    print(decision)
-
+    lx = []
+    for i in decision:
+        for j in attribute:
+            if j.issubset(i):
+                continue
+            else:
+                i = i - j
+        lx.append(i)
+    print(lx)
         
-def lowerappx():
+def upperappx(lemtable, attribute, decision):
     print("Upper Approximation")
+    ux = []
+    for i in decision:
+        temp = []
+        for j in i:
+            for k in attribute:
+                if j in k:
+                    (temp).extend(k)
+        ux.append(set(temp))
+    print(ux)
 
 def inconsistent(lemtable):
     print("Do non-consistent stuff")
@@ -508,6 +523,7 @@ def inconsistent(lemtable):
     print(lem)
     print(len(lemtable))
     lowerappx(lemtable, attribute, decision)
+    upperappx(lemtable, attribute, decision)
 
 
 def lem2(lemtable):
