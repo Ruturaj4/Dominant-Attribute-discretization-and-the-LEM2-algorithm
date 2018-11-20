@@ -372,12 +372,11 @@ def descritize(r):
         print(rc)
 
 class Selection:
-    def __init__(self, selection = {}, index = {}, total = {}, key = {}, complete = {}):
+    def __init__(self, selection = {}, index = {}, total = {}, key = {}):
         self.selection = selection
         self.index = index
         self.total = total
         self.key = key
-        self.complete = complete
 
 def removekey(d, key):
     r = dict(d)
@@ -437,10 +436,11 @@ def consistent(lemtable):
         print("Calculating for: ")
         print(v)
         selob = Selection(v)
-        selob.total = ([i for i in range(len(lem.values)-1)])
+        selob.total = ([i for i in range(len(lemtable.values))])
         print("Initial total")
         print(selob.total)
         avpairs = avp
+        completed = {}
         while(True):
             print("Selecting: ")
             print(selob.selection)
@@ -450,33 +450,65 @@ def consistent(lemtable):
             print(selob.total)
             print(selob.index)
             print("####")
-            selob.selection = set(selob.index).intersection(set(v))
-            avpairs = removekey(avpairs, selob.key) 
+            avpairs = removekey(avpairs, selob.key)
+
             selob.total = set(selob.total).intersection(selob.index)
             print(selob.total)
             print(str(selob.total)+" is a subset of "+str(v))
-            print(set(selob.total).issubset(set(v)))
+            print(set(selob.total).issubset(set(v)) and set(selob.total))
             print("###")
-            selob.complete = set(selob.complete).union(set(selob.total).intersection(set(v)))
-            if (set(selob.total).issubset(set(v))):
+            selob.selection = set(selob.total).intersection(set(v))
+            if set(selob.total):
+                print(selob.total)
+            if (set(selob.total).issubset(set(v))) and set(selob.total):
+                completed = set(completed).union(set(selob.total).intersection(set(v)))
+            print(completed)
+            if (set(selob.total).issubset(set(v)) and set(selob.total)):
                 if set(selob.total) == set(v):
+                    print("Completed!")
                     break
-                elif (set(selob.complete) == set(v)):
-                    print("I have to do something here")
+                elif (set(completed) == set(v)):
+                    print("!!!!!!!!!!!")
+                    print(completed)
+                    print(v)
+                    print("Completed!")
                     break
                 else:
-
                     print("Do something and continue")
                     selob = Selection(set(v).difference(set(selob.total)))
-                    selob.total = ([i for i in range(len(lem.values)-1)])
+                    print("This is my selection")
+                    print(selob.selection)
+                    selob.total = ([i for i in range(len(lemtable.values))])
                     avpairs = avp
                     print("This is avpairs now")
                     print(avpairs)
-                    continue
-        break
+
+def lowerappx(lemtable, attribute, decision):
+    print("Lower Approximation")
+    print(attribute)
+    print(decision)
+
         
-def inconsistent():
-        print("Do non-consistent stuff")
+def lowerappx():
+    print("Upper Approximation")
+
+def inconsistent(lemtable):
+    print("Do non-consistent stuff")
+    print(lemtable)
+    a = compute_a(lemtable.copy())
+    attribute = all_attributes(a)
+    d = compute_d(lemtable.copy())
+    decision = all_decisions(d)
+    avp = each_attribute(a)
+    dpairs = each_attribute(d)
+    print(dpairs)
+    print(avp)
+    data = {"Cases" : pd.Series(list(avp.values()), index = avp.keys())}
+    lem = pd.DataFrame(data)
+    print(lem)
+    print(len(lemtable))
+    lowerappx(lemtable, attribute, decision)
+
 
 def lem2(lemtable):
     print("We'll start lem2 algorithm")
