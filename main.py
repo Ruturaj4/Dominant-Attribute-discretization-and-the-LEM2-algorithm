@@ -372,11 +372,17 @@ def descritize(r):
         print(rc)
 
 class Selection:
-    def __init__(self, selection = {}, index = {}, total = {}, key = {}):
+    def __init__(self, selection = {}, index = {}, total = {}, key = {}, complete = {}):
         self.selection = selection
         self.index = index
         self.total = total
         self.key = key
+        self.complete = complete
+
+def removekey(d, key):
+    r = dict(d)
+    del r[key]
+    return r
 
 def casecal(avpairs, v, intersections, selob):
     lowest_case_len = float("inf")
@@ -396,6 +402,7 @@ def casecal(avpairs, v, intersections, selob):
                 selob.key = i
                 print("Print the index")
                 print(j)
+                print(i)
                 print("#####################")
     return selob
 
@@ -418,11 +425,11 @@ def consistent(lemtable):
     attribute = all_attributes(a)
     d = compute_d(lemtable.copy())
     decision = all_decisions(d)
-    avpairs = each_attribute(a)
+    avp = each_attribute(a)
     dpairs = each_attribute(d)
     print(dpairs)
-    print(avpairs)
-    data = {"Cases" : pd.Series(list(avpairs.values()), index = avpairs.keys())}
+    print(avp)
+    data = {"Cases" : pd.Series(list(avp.values()), index = avp.keys())}
     lem = pd.DataFrame(data)
     print(lem)
     print(len(lemtable))
@@ -433,6 +440,7 @@ def consistent(lemtable):
         selob.total = ([i for i in range(len(lem.values)-1)])
         print("Initial total")
         print(selob.total)
+        avpairs = avp
         while(True):
             print("Selecting: ")
             print(selob.selection)
@@ -443,22 +451,28 @@ def consistent(lemtable):
             print(selob.index)
             print("####")
             selob.selection = set(selob.index).intersection(set(v))
-            del avpairs[selob.key] 
-            print(str(selob.index)+" is a subset of "+str(v))
-            print(set(selob.index).issubset(set(v)))
+            avpairs = removekey(avpairs, selob.key) 
             selob.total = set(selob.total).intersection(selob.index)
             print(selob.total)
+            print(str(selob.total)+" is a subset of "+str(v))
+            print(set(selob.total).issubset(set(v)))
             print("###")
+            selob.complete = set(selob.complete).union(set(selob.total).intersection(set(v)))
             if (set(selob.total).issubset(set(v))):
                 if set(selob.total) == set(v):
                     break
-                else:
-                    print("Do something and break")
+                elif (set(selob.complete) == set(v)):
+                    print("I have to do something here")
                     break
-            else:
-                print("I have to do something here")
-                continue
-        #set(lemcal(avpairs, v, selob))
+                else:
+
+                    print("Do something and continue")
+                    selob = Selection(set(v).difference(set(selob.total)))
+                    selob.total = ([i for i in range(len(lem.values)-1)])
+                    avpairs = avp
+                    print("This is avpairs now")
+                    print(avpairs)
+                    continue
         break
         
 def inconsistent():
