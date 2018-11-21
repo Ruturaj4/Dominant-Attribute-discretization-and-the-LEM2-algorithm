@@ -352,15 +352,15 @@ def descritize(r):
         global dataset
         dataset = (descritized_dataset(r.copy(), a, ob)).copy()
         print("This is the final dataset")
+        dataset = dataset.loc[:,~dataset.columns.duplicated()]
         print(dataset)
         decs = False
         print(len(r.columns))
         if(len(dataset.columns)==len(r.columns)):
             print("yes")
-            dataset.to_pickle("myfile.disk")
+            with open("myfile.disc", "wb") as f:
+                np.save(f, dataset)
             # Saving the descritized dataset into pickle file
-            b = pd.read_pickle('myfile.disk')
-            print(b)
             return dataset.copy()
             break
         # Find consistency
@@ -368,9 +368,8 @@ def descritize(r):
         inconsistent_case = con.inconsistent_cases
         if (con.consistency == True):
             # Saving the descritized dataset into pickle file
-            dataset.to_pickle("myfile.disk")
-            b = pd.read_pickle('myfile.disk')
-            print(b)
+            with open("myfile.disc", "wb") as f:
+                np.save(f, dataset)
             return dataset.copy()
             break
 
@@ -395,6 +394,7 @@ def removekey(d, key):
     return r
 
 selectedj = []
+selectedr = []
 
 def casecal(avpairs, v, intersections, selob):
     lowest_case_len = float("inf")
@@ -436,14 +436,15 @@ def calc(lemtable, avp, dpairs):
         selectedj = []
         if not v:
             continue
-        #print("Calculating for: ")
-        #print(v)
+        print("Calculating for: ")
+        print(v)
         selob = Selection(v)
         selob.total = ([i for i in range(len(lemtable.values))])
         #print("Initial total")
         #print(selob.total)
         avpairs = avp
         completed = {}
+        lemcount = 0
         while(True):
             #print("Selecting: ")
             #print(selob.selection)
@@ -479,7 +480,10 @@ def calc(lemtable, avp, dpairs):
                         print(selectedj)
                     strstr = strstr + " -> " + str(k)
                     print(strstr)
-                    print("___________________________________")
+                    print(selob.index)
+                    with open("test.r", "a") as f:
+                        f.write(strstr)
+                        f.write("\n")
                     break
                 elif (set(completed) == set(v)):
                     if len(selectedj)>0:
@@ -491,7 +495,10 @@ def calc(lemtable, avp, dpairs):
                         strstr = strstr + str(selectedj)
                     strstr = strstr + " -> " + str(k)
                     print(strstr)
-                    print("__________________________________")
+                    with open("test.r", "a") as f:
+                        f.write(strstr)
+                        f.write("\n")
+                    completed = {}
                     #print(completed)
                     #print(v)
                     #print("Completed!")
@@ -506,8 +513,10 @@ def calc(lemtable, avp, dpairs):
                         strstr = strstr + str(selectedj)
                     strstr = strstr + " -> " + str(k)
                     print(strstr)
+                    with open("test.r", "a") as f:
+                        f.write(strstr)
+                        f.write("\n")
                     selectedj = []
-                    print("____________________________________")
                     #print("Do something and continue")
                     selob = Selection(set(v).difference(set(selob.total)))
                     #print("This is my selection")
@@ -523,12 +532,14 @@ def lem2(lemtable):
     attribute = all_attributes(a)
     d = compute_d(lemtable.copy())
     decision = all_decisions(d)
-    print("We'll start lem2 algorithm")
-    print("We'll first check if the table is consistent")
+    #print("We'll start lem2 algorithm")
+    #print("We'll first check if the table is consistent")
     con = consistency(all_attributes(lemtable.iloc[:,:-1]),all_decisions(lemtable.iloc[:, -1:]))
     if (con.consistency):
         avp = each_attribute(a)
         dpairs = each_attribute(d)
+        with open("test.r", "w") as f:
+            f.write("")
     else:
         avp = each_attribute(a)
         #print("This is d")
@@ -538,9 +549,18 @@ def lem2(lemtable):
         dpairs = lx
         data = {"Cases" : pd.Series(list(avp.values()), index = avp.keys())}
         lem = pd.DataFrame(data)
-        print(lx)
+        #print(lx)
+        print("Starting lower")
+        with open("test.r", "w") as f:
+            f.write("")
+            
+        with open("test.r", "a") as f:
+            f.write("! Certain rule set\n\n")
         calc(lemtable, avp, dpairs)
         dpairs = ux
+        print("Starting upper")
+        with open("test.r", "a") as f:
+            f.write("\n! Possible rule set\n\n")
         calc(lemtable, avp, dpairs)
         return
     print(lemtable)
@@ -633,7 +653,9 @@ def scanFile(inputFile):
         if r[column].dtype.kind in 'bifc':
             numeric = True
     if (numeric):
-        dataset = descritize(r)
+        with open("myfile.disc", "wb") as f:
+            np.save(f, "")
+            dataset = descritize(r)
         lem2(dataset.copy())
     else:
         lem2(r.copy())
@@ -643,4 +665,8 @@ def main():
     scanFile(inputFile)
 
 if __name__=="__main__":
-    main()
+    try:
+        main()
+    except:
+        print("Please check your input")
+        main()
