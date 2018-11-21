@@ -7,6 +7,9 @@ from math import log
 from collections import Counter
 import numpy as np
 
+# Debugging
+import sys
+
 # For error handling
 import os.path
 
@@ -74,6 +77,8 @@ def each_attribute(a):
     print(a)
     for i in range(len(list(a))):
         attribute = {}
+        print(a[list(a)[i]])
+        print(a[list(a)[i]].unique())
         for value in a[list(a)[i]].unique():
             attribute[value] = (a.index[a[list(a)[i]] == value].tolist())
         total[list(a)[i]] = attribute
@@ -288,10 +293,15 @@ def descritized_dataset(r, a, ob):
         #print(descritized_list)
         dataset[col] = descritized_list
         table = dataset.copy()
+        print(table)
         #table[[col, decision]] = table[[col,decision]].replace(x,descritized_list)
         #table = pd.concat([dataset.iloc[:,:-1], table],axis=1)
     #print(descritized_list)
-    #print(table)
+    print(table)
+    #df_num = table.iloc[:,0]
+    print(df_num)
+    #sys.exit()
+    print(table)
     return table
 
 # Computes attributes
@@ -384,26 +394,28 @@ def removekey(d, key):
     del r[key]
     return r
 
+selectedj = []
+
 def casecal(avpairs, v, intersections, selob):
     lowest_case_len = float("inf")
-    print("inter")
-    print(intersections)
+    #print("inter")
+    #print(intersections)
     max_len = max([len(i) for i in intersections])
     max_len = ([i for i in intersections if len(i) == max_len])
-    print("max_len")
-    print(max_len)
+    #print("max_len")
+    #print(max_len)
     for i,j in avpairs.items():
         if len(set(selob.selection)-(set(selob.selection)-set(j))) == len(max(intersections, key=len)):
-            print(j)
+            #print(j)
             if len(j) < lowest_case_len:
                 lowest_case_len = len(j)
                 #selob.selection = (set(selob.selection)-(set(selob.selection)-set(j)))
                 selob.index = j
                 selob.key = i
-                print("Print the index")
-                print(j)
-                print(i)
-                print("#####################")
+                #print("Print the index")
+                temp = i
+    global selectedj
+    selectedj.append(temp)
     return selob
 
 def lemcal(avpairs, v, selob):
@@ -414,10 +426,98 @@ def lemcal(avpairs, v, selob):
             intersections.append(set())
         else:
             intersections.append(set(selob.selection)-(set(selob.selection)-set(j)))
-    print(intersections)
+    #print(intersections)
     selob = casecal(avpairs, selob.selection, intersections, selob)
     return selob
-    
+
+def calc(lemtable, avp, dpairs):
+    for k,v in dpairs.items():
+        global selectedj
+        selectedj = []
+        if not v:
+            continue
+        #print("Calculating for: ")
+        #print(v)
+        selob = Selection(v)
+        selob.total = ([i for i in range(len(lemtable.values))])
+        #print("Initial total")
+        #print(selob.total)
+        avpairs = avp
+        completed = {}
+        while(True):
+            #print("Selecting: ")
+            #print(selob.selection)
+            selob = lemcal(avpairs, v, selob)
+            #print(selob.total)
+            #print("Intersection")
+            #print(selob.total)
+            #print(selob.index)
+            #print("####")
+            avpairs = removekey(avpairs, selob.key)
+
+            selob.total = set(selob.total).intersection(selob.index)
+            #print(selob.total)
+            #print(str(selob.total)+" is a subset of "+str(v))
+            #print(set(selob.total).issubset(set(v)) and set(selob.total))
+            #print("###")
+            selob.selection = set(selob.total).intersection(set(v))
+            #if set(selob.total):
+            #print(selob.total)
+            if (set(selob.total).issubset(set(v))) and set(selob.total):
+                completed = set(completed).union(set(selob.total).intersection(set(v)))
+            #print(completed)
+            if (set(selob.total).issubset(set(v)) and set(selob.total)):
+                strstr = ""
+                if set(selob.total) == set(v):
+                    if len(selectedj)>0:
+                        for p in range(len(selectedj)):
+                            strstr = strstr + str(selectedj[p])
+                            if p != (len(selectedj)-1):
+                                strstr = strstr + " & "
+                    else:
+                        strstr = strstr + str(selectedj)
+                        print(selectedj)
+                    strstr = strstr + " -> " + str(k)
+                    print(strstr)
+                    print("___________________________________")
+                    break
+                elif (set(completed) == set(v)):
+                    if len(selectedj)>0:
+                        for p in range(len(selectedj)):
+                            strstr = strstr + str(selectedj[p])
+                            if p != (len(selectedj)-1):
+                                strstr = strstr + " & "
+                    else:
+                        strstr = strstr + str(selectedj)
+                    strstr = strstr + " -> " + str(k)
+                    print(strstr)
+                    print("__________________________________")
+                    #print(completed)
+                    #print(v)
+                    #print("Completed!")
+                    break
+                else:
+                    if len(selectedj)>0:
+                        for p in range(len(selectedj)):
+                            strstr = strstr + str(selectedj[p])
+                            if p != (len(selectedj)-1):
+                                strstr = strstr + " & "
+                    else:
+                        strstr = strstr + str(selectedj)
+                    strstr = strstr + " -> " + str(k)
+                    print(strstr)
+                    selectedj = []
+                    print("____________________________________")
+                    #print("Do something and continue")
+                    selob = Selection(set(v).difference(set(selob.total)))
+                    #print("This is my selection")
+                    #print(selob.selection)
+                    selob.total = ([i for i in range(len(lemtable.values))])
+                    avpairs = avp
+                    #print("This is avpairs now")
+                    #print(avpairs)
+    print("__________________________________________________")
+ 
 def lem2(lemtable):
     a = compute_a(lemtable.copy())
     attribute = all_attributes(a)
@@ -431,89 +531,41 @@ def lem2(lemtable):
         dpairs = each_attribute(d)
     else:
         avp = each_attribute(a)
-        print("This is d")
-        print(d)
+        #print("This is d")
+        #print(d)
         lx = lowerappx(lemtable, attribute, decision)
         ux = upperappx(lemtable, attribute, decision)
-        print(ux)
-        print("**************")
+        dpairs = lx
+        data = {"Cases" : pd.Series(list(avp.values()), index = avp.keys())}
+        lem = pd.DataFrame(data)
         print(lx)
-        dpairs = ux 
-
+        calc(lemtable, avp, dpairs)
+        dpairs = ux
+        calc(lemtable, avp, dpairs)
+        return
     print(lemtable)
     data = {"Cases" : pd.Series(list(avp.values()), index = avp.keys())}
     lem = pd.DataFrame(data)
-    print(lem)
-    for k,v in dpairs.items():
-        if not v:
-            continue
-        print("Calculating for: ")
-        print(v)
-        selob = Selection(v)
-        selob.total = ([i for i in range(len(lemtable.values))])
-        print("Initial total")
-        print(selob.total)
-        avpairs = avp
-        completed = {}
-        while(True):
-            print("Selecting: ")
-            print(selob.selection)
-            selob = lemcal(avpairs, v, selob)
-            print(selob.total)
-            print("Intersection")
-            print(selob.total)
-            print(selob.index)
-            print("####")
-            avpairs = removekey(avpairs, selob.key)
-
-            selob.total = set(selob.total).intersection(selob.index)
-            print(selob.total)
-            print(str(selob.total)+" is a subset of "+str(v))
-            print(set(selob.total).issubset(set(v)) and set(selob.total))
-            print("###")
-            selob.selection = set(selob.total).intersection(set(v))
-            if set(selob.total):
-                print(selob.total)
-            if (set(selob.total).issubset(set(v))) and set(selob.total):
-                completed = set(completed).union(set(selob.total).intersection(set(v)))
-            print(completed)
-            if (set(selob.total).issubset(set(v)) and set(selob.total)):
-                if set(selob.total) == set(v):
-                    print("Completed!")
-                    break
-                elif (set(completed) == set(v)):
-                    print("!!!!!!!!!!!")
-                    print(completed)
-                    print(v)
-                    print("Completed!")
-                    break
-                else:
-                    print("Do something and continue")
-                    selob = Selection(set(v).difference(set(selob.total)))
-                    print("This is my selection")
-                    print(selob.selection)
-                    selob.total = ([i for i in range(len(lemtable.values))])
-                    avpairs = avp
-                    print("This is avpairs now")
-                    print(avpairs)
-
+    #print(lem)
+    calc(lemtable, avp, dpairs)
+    
 def lowerappx(lemtable, attribute, decision):
-    print(lemtable)
+    #print(lemtable)
     a = lemtable.iloc[:, -1:]
-    print(a)
+    #print(a)
     total = {}
     for i in range(len(list(a))):
         attributes = {}
         for value in a[list(a)[i]].unique():
             attributes[value] = (a.index[a[list(a)[i]] == value].tolist())
-            print(attributes[value])
+            #print(attributes[value])
             for j in attribute:
                 if j.issubset(attributes[value]):
                     continue
                 else:
                     attributes[value] = list(set(attributes[value]) - j)
         total[list(a)[i]] = attributes
-        print(attributes)
+        #print(attributes)
     return avblock(total)
     
 
@@ -535,24 +587,24 @@ def lowerappx(lemtable, attribute, decision):
 """
         
 def upperappx(lemtable, attribute, decision):
-    print("Upper Approximation")
+    #print("Upper Approximation")
     a = lemtable.iloc[:, -1:]
-    print(a)
+    #print(a)
     total = {}
     for i in range(len(list(a))):
         attributes = {}
         for value in a[list(a)[i]].unique():
             temp = []
             attributes[value] = (a.index[a[list(a)[i]] == value].tolist())
-            print(attributes[value])
+            #print(attributes[value])
             for m in attributes[value]:
                 for n in attribute:
                     if m in n:
                         temp.extend(n)
             attributes[value] = temp
         total[list(a)[i]] = attributes
-    print("I am here")
-    print(total)
+    #print("I am here")
+    #print(total)
     return avblock(total) 
                         
 """
@@ -570,22 +622,6 @@ def upperappx(lemtable, attribute, decision):
 
 """
 
-def inconsistent(lemtable):
-    print("Do non-consistent stuff")
-    print(lemtable)
-    a = compute_a(lemtable.copy())
-    attribute = all_attributes(a)
-    d = compute_d(lemtable.copy())
-    decision = all_decisions(d)
-    avp = each_attribute(a)
-    dpairs = each_attribute(d)
-    print(dpairs)
-    print(avp)
-    data = {"Cases" : pd.Series(list(avp.values()), index = avp.keys())}
-    lem = pd.DataFrame(data)
-    print(lem)
-    print(len(lemtable))
-    
 def scanFile(inputFile):
     # Select rows and columns
     r = pd.DataFrame(inputFile[1:], columns=inputFile[0])
