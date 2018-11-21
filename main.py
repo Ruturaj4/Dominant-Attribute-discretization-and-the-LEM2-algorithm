@@ -299,7 +299,7 @@ def descritized_dataset(r, a, ob):
     #print(descritized_list)
     print(table)
     #df_num = table.iloc[:,0]
-    print(df_num)
+    #print(df_num)
     #sys.exit()
     print(table)
     return table
