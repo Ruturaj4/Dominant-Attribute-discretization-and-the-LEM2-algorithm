@@ -1,4 +1,17 @@
-('Weight', '4.1..4.7') -> ('Strength', 'low')
-('Height', '3.5999999999999996..4.8') -> ('Strength', 'low')
-('Weight', '2.3..4.1') & ('Height', '2.9..3.5999999999999996') -> ('Strength', 'high')
-('Height', '4.8..5.3') & ('Weight', '2.3..4.1') -> ('Strength', 'high')
+! Certain rule set
+
+2, 2
+('Wind', 'low') & ('Temperature', 'medium') -> ('Trip', 'yes')
+1, 1
+('Temperature', 'low') -> ('Trip', 'yes')
+
+! Possible rule set
+
+1, 5
+('Wind', 'low') -> ('Trip', 'yes')
+1, 3
+('Wind', 'medium') -> ('Trip', 'no')
+1, 3
+('Wind', 'medium') -> ('Trip', 'maybe')
+1, 2
+('Temperature', 'high') -> ('Trip', 'maybe')

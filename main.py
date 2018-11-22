@@ -77,8 +77,8 @@ def each_attribute(a):
     print(a)
     for i in range(len(list(a))):
         attribute = {}
-        print(a[list(a)[i]])
-        print(a[list(a)[i]].unique())
+        #print(a[list(a)[i]])
+        #print(a[list(a)[i]].unique())
         for value in a[list(a)[i]].unique():
             attribute[value] = (a.index[a[list(a)[i]] == value].tolist())
         total[list(a)[i]] = attribute
@@ -324,8 +324,8 @@ def dpass(r, all_d):
     for column in r.iloc[:, :-1]:
         if r[column].dtype.kind in "bifc":
             num_columns.append(column)
-    print("num columns:")
-    print(num_columns)
+    #print("num columns:")
+    #print(num_columns)
     return value_pass(r, all_d, a, d, attribute, decision, num_columns) 
 
 def descritize(r):
@@ -358,8 +358,8 @@ def descritize(r):
         print(len(r.columns))
         if(len(dataset.columns)==len(r.columns)):
             print("yes")
-            with open("myfile.disc", "wb") as f:
-                np.save(f, dataset)
+            with open("myfile.disc", "w") as f:
+                f.write(dataset.to_string())
             # Saving the descritized dataset into pickle file
             return dataset.copy()
             break
@@ -368,8 +368,8 @@ def descritize(r):
         inconsistent_case = con.inconsistent_cases
         if (con.consistency == True):
             # Saving the descritized dataset into pickle file
-            with open("myfile.disc", "wb") as f:
-                np.save(f, dataset)
+            with open("myfile.disc", "w") as f:
+                f.write(dataset.to_string())
             return dataset.copy()
             break
 
@@ -379,8 +379,9 @@ def descritize(r):
         
         # Now let's change our rc with inconsistent_case
         rc = inconsistent_case.copy()
-        print(rc)
+        #print(rc)
 
+# Class for selection
 class Selection:
     def __init__(self, selection = {}, index = {}, total = {}, key = {}):
         self.selection = selection
@@ -388,6 +389,7 @@ class Selection:
         self.total = total
         self.key = key
 
+# Dictionary to remove key
 def removekey(d, key):
     r = dict(d)
     del r[key]
@@ -396,12 +398,17 @@ def removekey(d, key):
 selectedj = []
 selectedr = []
 
+# Case calculation - This is where all the rules come from
 def casecal(avpairs, v, intersections, selob):
     lowest_case_len = float("inf")
     #print("inter")
     #print(intersections)
-    max_len = max([len(i) for i in intersections])
-    max_len = ([i for i in intersections if len(i) == max_len])
+    try:
+        max_len = max([len(i) for i in intersections])
+        max_len = ([i for i in intersections if len(i) == max_len])
+    except:
+        print("Check your input file")
+        main()
     #print("max_len")
     #print(max_len)
     for i,j in avpairs.items():
@@ -415,9 +422,12 @@ def casecal(avpairs, v, intersections, selob):
                 #print("Print the index")
                 temp = i
     global selectedj
+    global selectedr
     selectedj.append(temp)
+    selectedr.append(selob.index)
     return selob
 
+# I would say an helper function
 def lemcal(avpairs, v, selob):
     # List that maintains intersections
     intersections = []
@@ -430,14 +440,17 @@ def lemcal(avpairs, v, selob):
     selob = casecal(avpairs, selob.selection, intersections, selob)
     return selob
 
+# Actual lem2 calculation
 def calc(lemtable, avp, dpairs):
     for k,v in dpairs.items():
         global selectedj
+        global selectedr
         selectedj = []
+        selectedr = []
         if not v:
             continue
-        print("Calculating for: ")
-        print(v)
+        #print("Calculating for: ")
+        #print(v)
         selob = Selection(v)
         selob.total = ([i for i in range(len(lemtable.values))])
         #print("Initial total")
@@ -477,11 +490,15 @@ def calc(lemtable, avp, dpairs):
                                 strstr = strstr + " & "
                     else:
                         strstr = strstr + str(selectedj)
-                        print(selectedj)
+                        #print(selectedj)
                     strstr = strstr + " -> " + str(k)
+                    print(selectedr)
+                    print(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))))
                     print(strstr)
-                    print(selob.index)
+                    #print(selob.index)
                     with open("test.r", "a") as f:
+                        f.write(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))))
+                        f.write("\n")
                         f.write(strstr)
                         f.write("\n")
                     break
@@ -494,8 +511,13 @@ def calc(lemtable, avp, dpairs):
                     else:
                         strstr = strstr + str(selectedj)
                     strstr = strstr + " -> " + str(k)
+                    print(selectedr)
+                    #print(set.intersection(*map(set, selectedr)))
+                    print(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))))
                     print(strstr)
                     with open("test.r", "a") as f:
+                        f.write(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))))
+                        f.write("\n")
                         f.write(strstr)
                         f.write("\n")
                     completed = {}
@@ -512,11 +534,17 @@ def calc(lemtable, avp, dpairs):
                     else:
                         strstr = strstr + str(selectedj)
                     strstr = strstr + " -> " + str(k)
+                    print(selectedr)
+                    #print(set(x for l in selectedr for x in l))
+                    print(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))))
                     print(strstr)
                     with open("test.r", "a") as f:
+                        f.write(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))))
+                        f.write("\n")
                         f.write(strstr)
                         f.write("\n")
                     selectedj = []
+                    selectedr = []
                     #print("Do something and continue")
                     selob = Selection(set(v).difference(set(selob.total)))
                     #print("This is my selection")
@@ -526,7 +554,8 @@ def calc(lemtable, avp, dpairs):
                     #print("This is avpairs now")
                     #print(avpairs)
     print("__________________________________________________")
- 
+
+#This is also an helper function
 def lem2(lemtable):
     a = compute_a(lemtable.copy())
     attribute = all_attributes(a)
@@ -563,12 +592,13 @@ def lem2(lemtable):
             f.write("\n! Possible rule set\n\n")
         calc(lemtable, avp, dpairs)
         return
-    print(lemtable)
+    #print(lemtable)
     data = {"Cases" : pd.Series(list(avp.values()), index = avp.keys())}
     lem = pd.DataFrame(data)
-    #print(lem)
+    print(lem)
     calc(lemtable, avp, dpairs)
-    
+
+# Gives lower approximation
 def lowerappx(lemtable, attribute, decision):
     #print(lemtable)
     a = lemtable.iloc[:, -1:]
@@ -605,7 +635,8 @@ def lowerappx(lemtable, attribute, decision):
     print(lx)
     return lx
 """
-        
+
+# Gives upper approximation
 def upperappx(lemtable, attribute, decision):
     #print("Upper Approximation")
     a = lemtable.iloc[:, -1:]
@@ -641,7 +672,7 @@ def upperappx(lemtable, attribute, decision):
     return ux
 
 """
-
+# Scans the file
 def scanFile(inputFile):
     # Select rows and columns
     r = pd.DataFrame(inputFile[1:], columns=inputFile[0])
@@ -653,13 +684,14 @@ def scanFile(inputFile):
         if r[column].dtype.kind in 'bifc':
             numeric = True
     if (numeric):
-        with open("myfile.disc", "wb") as f:
-            np.save(f, "")
+        with open("myfile.disc", "w") as f:
+            f.write("")
             dataset = descritize(r)
         lem2(dataset.copy())
     else:
         lem2(r.copy())
 
+# This is my main function
 def main():
     inputFile = readFile()
     scanFile(inputFile)
