@@ -1,17 +1,8 @@
-! Certain rule set
-
-2, 2
-('Wind', 'low') & ('Temperature', 'medium') -> ('Trip', 'yes')
-1, 1
-('Temperature', 'low') -> ('Trip', 'yes')
-
-! Possible rule set
-
-1, 5
-('Wind', 'low') -> ('Trip', 'yes')
-1, 3
-('Wind', 'medium') -> ('Trip', 'no')
-1, 3
-('Wind', 'medium') -> ('Trip', 'maybe')
-1, 2
-('Temperature', 'high') -> ('Trip', 'maybe')
+2, 2, 2
+('Comfort', 'high') & ('Weight', 'Medium') -> ('Quality', '2')
+2, 1, 1
+('Noise', 'medium') & ('Weight', 'High') -> ('Quality', '2')
+2, 2, 2
+('Weight', 'High') & ('Noise', 'low') -> ('Quality', '1')
+1, 1, 1
+('Weight', 'Low') -> ('Quality', '1')

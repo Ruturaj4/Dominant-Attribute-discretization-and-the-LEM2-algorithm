@@ -497,7 +497,7 @@ def calc(lemtable, avp, dpairs):
                     print(strstr)
                     #print(selob.index)
                     with open("test.r", "a") as f:
-                        f.write(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))))
+                        f.write(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))) + ", " + str(len(set.intersection(*map(set, selectedr)))))
                         f.write("\n")
                         f.write(strstr)
                         f.write("\n")
@@ -516,7 +516,7 @@ def calc(lemtable, avp, dpairs):
                     print(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))))
                     print(strstr)
                     with open("test.r", "a") as f:
-                        f.write(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))))
+                        f.write(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))) + ", " + str(len(set.intersection(*map(set, selectedr)))))
                         f.write("\n")
                         f.write(strstr)
                         f.write("\n")
@@ -539,7 +539,7 @@ def calc(lemtable, avp, dpairs):
                     print(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))))
                     print(strstr)
                     with open("test.r", "a") as f:
-                        f.write(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))))
+                        f.write(str(len(selectedr)) + ", " + str(len(set.intersection(*map(set, selectedr)))) + ", " + str(len(set.intersection(*map(set, selectedr)))))
                         f.write("\n")
                         f.write(strstr)
                         f.write("\n")
